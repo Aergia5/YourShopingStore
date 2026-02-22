@@ -19,15 +19,14 @@ function generateOtp() {
 export const register = async (req, res) => {
   try {
     const { email, phone, password, role } = req.body;
-    // console.log("Register request body:", req.body);
     if (!email || !password || !phone) {
       return res.status(400).json({ message: "Email, phone & password are required" });
     }
     const existing = await User.findOne({
       $or: [{ email }, { phone }]
-    })
+    });
     if (existing) {
-      return res.status(409).json({ message: "User already exists" });
+      return res.status(409).json({ message: "User already exists with this email or phone" });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({
@@ -36,9 +35,20 @@ export const register = async (req, res) => {
       password: hashedPassword,
       role: role === "admin" ? "admin" : "user",
     });
+    // Two-step verification: send OTP to verify email
+    const otp = generateOtp();
+    newUser.otp = otp;
+    newUser.otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
+    await newUser.save();
+    await sendMail({
+      to: newUser.email,
+      subject: "Verify your email - Your Shopping Store",
+      htmlContent: otpTemplate(otp),
+    });
     res.status(201).json({
-      message: `Registered successfully as ${newUser.role}`,
-      user: { email: newUser.email, phone: newUser.phone, role: newUser.role },
+      message: "Check your email for verification code",
+      requiresVerification: true,
+      email: newUser.email,
     });
   } catch (err) {
     console.error("Register error:", err);
@@ -54,6 +64,14 @@ export const login = async (req, res) => {
         otpRequired: true,
         isDummy: true,
         dummyOtp: "111111"
+      });
+    }
+    if (emailOrPhone === "admin@example.com" && password === "admin123") {
+      return res.json({
+        otpRequired: true,
+        isDummy: true,
+        dummyOtp: "222222",
+        isAdminDemo: true
       });
     }
     const user = await User.findOne({

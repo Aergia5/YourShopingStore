@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux"
 import { motion } from "framer-motion"
 
 import { fetchAllOrders, updateOrderStatus } from "../../store/slices/ordersSlice"
-import { formatUrl } from "../../utils/formatUrl"
+import { formatUrl, PLACEHOLDER_IMAGE } from "../../utils/formatUrl"
 
 export default function ManageOrders() {
   const dispatch = useDispatch()
@@ -62,7 +62,7 @@ export default function ManageOrders() {
                   <div key={item.id} className="flex justify-between items-center py-3">
                     <div className="flex items-center gap-3">
                       <img
-                        src={formatUrl(item.Product?.image)}
+                        src={formatUrl(item.Product?.image) || PLACEHOLDER_IMAGE}
                         className="w-16 h-16 object-cover rounded-md shadow"
                       />
                       <div>

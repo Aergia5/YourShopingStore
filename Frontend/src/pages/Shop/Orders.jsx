@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
 import { Link } from "react-router-dom"
 import API, { BASE_URL } from "../../api/api"
-import { formatUrl } from "../../utils/formatUrl"
+import { formatUrl, PLACEHOLDER_IMAGE } from "../../utils/formatUrl"
 
 export default function Orders() {
   const [orders, setOrders] = useState([])
@@ -101,7 +101,7 @@ export default function Orders() {
                .filter(item => item.Product)
                .map((item) => {
                  const img = getFirstImage(item.Product.image)
-                 const imgSrc = img ? formatUrl(img) : "/placeholder.png"
+                 const imgSrc = img ? formatUrl(img) : PLACEHOLDER_IMAGE
 
                  return (
                    <div

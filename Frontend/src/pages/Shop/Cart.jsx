@@ -9,7 +9,7 @@ import {
 } from "../../store/slices/cartSlice"
 
 import API from "../../api/api"
-import { formatUrl } from "../../utils/formatUrl"
+import { formatUrl, PLACEHOLDER_IMAGE } from "../../utils/formatUrl"
 
 export default function Cart() {
   const dispatch = useDispatch()
@@ -88,7 +88,7 @@ export default function Cart() {
 
       {cart.map(item => {
         const img = getFirstImage(item.Product?.image)
-        const imgSrc = img ? formatUrl(img) : "/placeholder.png"
+        const imgSrc = img ? formatUrl(img) : PLACEHOLDER_IMAGE
 
         return (
         <div

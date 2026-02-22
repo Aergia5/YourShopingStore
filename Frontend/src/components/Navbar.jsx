@@ -19,7 +19,7 @@ const Navbar = () => {
     setRole(user?.role || localStorage.getItem("role"))
   }, [user])
 
-  const hideOnAuthPages = ["/login", "/signup", "/forgot-password", "/reset-password"]
+  const hideOnAuthPages = ["/", "/login", "/admin/login", "/register", "/signup", "/forgot-password", "/reset-password", "/verify-otp"]
   if (hideOnAuthPages.some((path) => location.pathname.startsWith(path))) return null
 
   const handleLogout = () => {
@@ -42,7 +42,7 @@ const Navbar = () => {
     >
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         <Link
-          to="/"
+          to={role === "admin" ? "/admin/dashboard" : role === "user" ? "/products" : "/welcome"}
           className="text-2xl font-bold tracking-tight flex items-center hover:opacity-90 transition"
         >
           <span className="text-gray-600">Your</span><span className="text-green-600">Store</span><span className="text-green-600 text-3xl leading-8">.</span>
@@ -215,7 +215,18 @@ const Navbar = () => {
             <LogoutButton onClick={handleLogout} />
           ) : (
             <>
-
+              <button
+                onClick={() => navigate("/login")}
+                className="px-4 py-2 text-green-600 font-medium hover:bg-green-50 rounded-lg transition"
+              >
+                Log in
+              </button>
+              <button
+                onClick={() => navigate("/register")}
+                className="px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition"
+              >
+                Sign up
+              </button>
             </>
           )}
         </div>

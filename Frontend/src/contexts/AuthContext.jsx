@@ -1,5 +1,4 @@
 import React, { createContext, useState, useEffect, useContext } from "react"
-import { useNavigate } from "react-router-dom"
 import API from "../api/api"
 
 export const AuthContext = createContext()
@@ -8,7 +7,6 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [token, setToken] = useState(localStorage.getItem("token") || null)
   const [loading, setLoading] = useState(true)
-  const navigate = useNavigate()
 
   useEffect(() => {
     const savedToken = localStorage.getItem("token")
@@ -143,14 +141,14 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("isDummy")
     localStorage.removeItem("dummyOtp")
     delete API.defaults.headers.common["Authorization"]
-    navigate("/login")
+    window.location.href = "/login"
   }
 
   return (
     <AuthContext.Provider
       value={{ user, token, login, logout, signup, loading, resendOtp, verifyOtp }}
     >
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   )
 }

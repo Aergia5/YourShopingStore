@@ -1,5 +1,7 @@
 import { BASE_URL } from "../api/api";
 
+export const PLACEHOLDER_IMAGE = "/images/placeholder.svg";
+
 export const formatUrl = (url) => {
   if (!url) return null;
   if (Array.isArray(url)) url = url[0];

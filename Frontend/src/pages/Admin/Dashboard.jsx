@@ -4,7 +4,7 @@ import AddProduct from "../../components/Admin/AddProduct"
 import EditProduct from "../../components/Admin/EditProduct"
 import { motion } from "framer-motion"
 import API, { BASE_URL } from "../../api/api"
-import { formatUrl } from "../../utils/formatUrl"
+import { formatUrl, PLACEHOLDER_IMAGE } from "../../utils/formatUrl"
 
 export default function Dashboard() {
   const [products, setProducts] = useState([])
@@ -107,13 +107,11 @@ export default function Dashboard() {
               whileHover={{ scale: 1.03 }}
               className="bg-white/80 backdrop-blur-md shadow-xl rounded-2xl p-4 transition-all border border-teal-100 flex flex-col items-center text-center"
             >
-            {firstImage && (
-              <img
-                src={formatUrl(firstImage)}
+            <img
+                src={firstImage ? formatUrl(firstImage) : PLACEHOLDER_IMAGE}
                 alt={p.name}
                 className="h-full w-44 object-cover rounded-xl mb-4 mx-auto mt-5"
               />
-            )}
 
               <h3 className="font-bold text-lg text-teal-800">{p.name}</h3>
               <p className="text-gray-600 mb-1">

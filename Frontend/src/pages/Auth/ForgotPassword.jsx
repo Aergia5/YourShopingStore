@@ -39,11 +39,11 @@ export default function ForgotPassword() {
         muted
         loop
         playsInline
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover object-center scale-[1.35]"
       />
 
           <Link
-            to="/"
+            to="/welcome"
             className="absolute top-6 left-6 text-white text-lg font-semibold hover:underline z-20"
           >
             ← Back to Home
@@ -54,7 +54,7 @@ export default function ForgotPassword() {
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="relative z-10 bg-white/15 backdrop-blur-md p-10 rounded-2xl border border-white/20 w-[90%] max-w-md text-left"
+        className="relative z-10 bg-white/10 backdrop-blur-md p-10 rounded-2xl border border-white/20 w-[90%] max-w-md text-left shadow-xl"
       >
         <h2 className="text-3xl font-bold mb-6 text-center text-white">
           Forgot Password

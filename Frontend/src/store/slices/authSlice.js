@@ -13,11 +13,15 @@ export const login = createAsyncThunk(
       localStorage.setItem("isDummy", "true");
       localStorage.setItem("dummyOtp", res.data.dummyOtp);
       localStorage.setItem("pendingEmail", emailOrPhone);
+      if (res.data.isAdminDemo) {
+        localStorage.setItem("adminLogin", "true");
+      }
 
       return {
         otpRequired: true,
         isDummy: true,
-        dummyOtp: res.data.dummyOtp
+        dummyOtp: res.data.dummyOtp,
+        isAdminDemo: res.data.isAdminDemo
       };
     }
     if (res.data.otpRequired) {
@@ -39,12 +43,15 @@ export const verifyOtp = createAsyncThunk(
         throw new Error("Invalid dummy OTP");
       }
 
-      const finalUser = { email: emailOrPhone, role: "user", demo: true };
+      const isAdminDemo = localStorage.getItem("adminLogin") === "true";
+      const role = isAdminDemo ? "admin" : "user";
+      const finalUser = { email: emailOrPhone, role, demo: true };
 
       localStorage.setItem("token", "DUMMY_TOKEN");
       localStorage.setItem("user", JSON.stringify(finalUser));
-      localStorage.setItem("role", "user");
+      localStorage.setItem("role", role);
       localStorage.removeItem("dummyOtp");
+      localStorage.removeItem("adminLogin");
 
       API.defaults.headers.common["Authorization"] = "Bearer DUMMY_TOKEN";
 

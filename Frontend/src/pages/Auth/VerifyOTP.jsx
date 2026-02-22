@@ -65,7 +65,9 @@ export default function VerifyOTP() {
         localStorage.removeItem("pendingEmail")
         localStorage.removeItem("dummyOtp")
         localStorage.removeItem("isDummy")
-        return navigate("/")
+        const isAdminLogin = localStorage.getItem("adminLogin") === "true"
+        localStorage.removeItem("adminLogin")
+        return navigate(result.role === "admin" || isAdminLogin ? "/admin/dashboard" : "/products")
       } else {
         return setMessage(result.message || "Invalid OTP")
       }
@@ -103,7 +105,7 @@ export default function VerifyOTP() {
       />
 
       <Link
-        to="/"
+        to="/welcome"
         className="absolute top-6 left-6 text-white text-lg font-semibold hover:underline z-20"
       >
         ← Back to Home
@@ -112,9 +114,9 @@ export default function VerifyOTP() {
       <div className="absolute inset-0 bg-black/40" />
 
       <div className="relative z-10 flex min-h-screen justify-center items-center px-6">
-        <div className="w-[380px] text-center bg-white/10 backdrop-blur-md border border-white/20 p-8 rounded-lg shadow-lg">
+        <div className="w-full max-w-[380px] text-center bg-white/10 backdrop-blur-md border border-white/20 p-8 rounded-xl shadow-xl mx-4">
           <h1 className="text-3xl font-semibold mb-3 text-white">
-            OTP Verification
+            Two-Step Verification
           </h1>
 
           <p className="text-gray-300 mb-6">

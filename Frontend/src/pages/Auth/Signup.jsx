@@ -18,9 +18,15 @@ export default function Signup() {
     setMessage("");
 
     try {
-      await signup(email, phone, password, role);
-      setMessage("Signup successful! Redirecting to login...");
-      setTimeout(() => navigate(`/login?role=${role}`), 1500);
+      const res = await signup(email, phone, password, role);
+      if (res?.requiresVerification) {
+        localStorage.setItem("pendingEmail", res.email);
+        setMessage("Check your email for verification code!");
+        setTimeout(() => navigate("/verify-otp"), 1500);
+      } else {
+        setMessage("Signup successful! Redirecting to login...");
+        setTimeout(() => navigate(`/login?role=${role}`), 1500);
+      }
     } catch (err) {
       console.error("Signup error:", err);
       setMessage(err.response?.data?.message || "Signup failed. Try again.");
@@ -41,7 +47,7 @@ export default function Signup() {
       />
 
         <Link
-            to="/"
+            to="/welcome"
             className="absolute top-6 left-6 text-white text-lg font-semibold hover:underline z-20"
           >
             ← Back to Home
@@ -51,21 +57,24 @@ export default function Signup() {
       <div className="relative z-10 flex min-h-screen justify-center items-center px-6 md:px-16">
           <form
             onSubmit={handleSignup}
-            className="w-full max-w-sm backdrop-blur-md p-8 rounded-lg"
+            className="w-full max-w-sm backdrop-blur-md bg-white/5 border border-white/20 p-8 rounded-xl shadow-xl"
           >
             <div className="text-center">
               <h2 className="text-3xl font-semibold mb-2 text-green-600">
                 Create Account
               </h2>
-              <p className="text-sm text-white mb-6">
+              <p className="text-sm text-white mb-2">
                 Enter your details below
               </p>
+              <span className="inline-block text-xs px-2 py-1 rounded bg-green-500/20 text-green-300 border border-green-500/30 mb-4">
+                Two-step verification (email OTP)
+              </span>
             </div>
   
             <input
               type="email"
               placeholder="Email"
-              className="border-b border-gray-300 mb-6 w-full p-2 focus:outline-none focus:border-green-600 text-white"
+              className="border-b border-gray-300 mb-6 w-full p-2.5 bg-transparent focus:outline-none focus:border-green-500 text-white placeholder-gray-400"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -74,8 +83,7 @@ export default function Signup() {
             <input
               type="tel"
               placeholder="Phone Number"
-              className="border-b border-gray-300 mb-6 w-full p-2
-              focus:outline-none focus:border-green-600 text-white"
+              className="border-b border-gray-300 mb-6 w-full p-2.5 bg-transparent focus:outline-none focus:border-green-500 text-white placeholder-gray-400"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               required
@@ -84,7 +92,7 @@ export default function Signup() {
             <input
               type="password"
               placeholder="Password"
-              className="border-b border-gray-300 mb-6 w-full p-2 focus:outline-none focus:border-green-600 text-white"
+              className="border-b border-gray-300 mb-6 w-full p-2.5 bg-transparent focus:outline-none focus:border-green-500 text-white placeholder-gray-400"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -93,7 +101,7 @@ export default function Signup() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-800 transition-colors duration-300 cursor-pointer"
+              className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors duration-300 cursor-pointer disabled:opacity-70 font-medium"
             >
               {loading ? "Creating..." : "Sign Up"}
             </button>
@@ -109,7 +117,13 @@ export default function Signup() {
             </p>
   
             {message && (
-              <p className="text-center mt-4 text-sm text-gray-700">{message}</p>
+              <p
+                className={`text-center mt-4 text-sm ${
+                  message.includes("successful") ? "text-green-400" : "text-red-400"
+                }`}
+              >
+                {message}
+              </p>
             )}
           </form>
         </div>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react"
 import API, { BASE_URL } from "../../api/api"
+import { PLACEHOLDER_IMAGE } from "../../utils/formatUrl"
 import { useNavigate, useLocation } from "react-router-dom"
 import { motion } from "framer-motion"
 import { Star } from "lucide-react"
@@ -71,7 +72,7 @@ export default function ProductList() {
   }
   
   const formatUrl = (url) => {
-    if (!url) return "/placeholder.png"
+    if (!url) return PLACEHOLDER_IMAGE
     if (url.startsWith("http://") || url.startsWith("https://")) return url
     return `${BASE_URL.replace(/\/$/, "")}${url.startsWith("/") ? "" : "/"}${url}`
   }
@@ -105,8 +106,8 @@ export default function ProductList() {
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-6">
         {products.map((p, idx) => {
             const imgs = normalizeImages(p.image)
-            const img1 = imgs[0] || "/placeholder.png"
-            const img2 = imgs[1] || imgs[0] || "/placeholder.png"
+            const img1 = imgs[0] || PLACEHOLDER_IMAGE
+            const img2 = imgs[1] || imgs[0] || PLACEHOLDER_IMAGE
 
           return (
             <motion.div
@@ -123,14 +124,14 @@ export default function ProductList() {
                 <div className="relative w-full h-56 flex items-center justify-center p-6">
                 {(() => {
                 const formatUrl = (url) => {
-                  if (!url) return "/placeholder.png"
+                  if (!url) return PLACEHOLDER_IMAGE
                   if (url.startsWith("http://") || url.startsWith("https://")) {
                     return url
                   }
                   return `${BASE_URL.replace(/\/$/, "")}${url.startsWith("/") ? "" : "/"}${url}`
                 }
 
-                  const imgSrc1 = img1 ? formatUrl(img1) : "/placeholder.png"
+                  const imgSrc1 = img1 ? formatUrl(img1) : PLACEHOLDER_IMAGE
                   const imgSrc2 = img2 ? formatUrl(img2) : imgSrc1
 
                   return (

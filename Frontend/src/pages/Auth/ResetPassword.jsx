@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import API, { BASE_URL } from "../../api/api";
+import API from "../../api/api";
 
 export default function ResetPassword() {
   const { token } = useParams();
@@ -36,12 +36,12 @@ export default function ResetPassword() {
     <div className="relative w-full h-screen flex items-center justify-center text-center text-white overflow-hidden">
       {/* Background video */}
       <video
-        src={`${BASE_URL}/uploads/shopping.webm`}
+        src="https://res.cloudinary.com/djm65usjg/video/upload/v1763285155/login6_prwtwb.mp4"
         autoPlay
         muted
         loop
         playsInline
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover object-center scale-[1.35]"
       />
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/70"></div>
 
@@ -50,7 +50,7 @@ export default function ResetPassword() {
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="relative z-10 bg-white/15 backdrop-blur-md p-10 rounded-2xl border border-white/20 w-[90%] max-w-md text-left"
+        className="relative z-10 bg-white/10 backdrop-blur-md p-10 rounded-2xl border border-white/20 w-[90%] max-w-md text-left shadow-xl"
       >
         <h2 className="text-3xl font-bold mb-6 text-center text-white">
           Reset Password

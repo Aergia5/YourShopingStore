@@ -14,18 +14,14 @@ export default function Login() {
   const [emailOrPhone, setEmailOrPhone] = useState("")
   const [password, setPassword] = useState("")
   const [message, setMessage] = useState("")
-  const [showNotice, setShowNotice] = useState(false)
-
   const DUMMY_EMAIL = "demo@example.com"
   const DUMMY_PASSWORD = "123456"
+  const ADMIN_EMAIL = "admin@example.com"
+  const ADMIN_PASSWORD = "admin123"
 
   useEffect(() => {
     setEmailOrPhone(DUMMY_EMAIL)
     setPassword(DUMMY_PASSWORD)
-    if (!sessionStorage.getItem("loginNoticeShown")) {
-      setShowNotice(true)
-      sessionStorage.setItem("loginNoticeShown", "true")
-    }
   }, [])
 
   const handleLogin = async (e) => {
@@ -41,7 +37,8 @@ export default function Login() {
       if (result.isDummy) {
         localStorage.setItem("isDummy", "true")
         localStorage.setItem("dummyOtp", result.dummyOtp)
-        localStorage.setItem("pendingEmail", DUMMY_EMAIL)
+        localStorage.setItem("pendingEmail", result.isAdminDemo ? ADMIN_EMAIL : emailOrPhone)
+        if (result.isAdminDemo) localStorage.setItem("adminLogin", "true")
         return navigate("/verify-otp")
       }
   
@@ -49,7 +46,7 @@ export default function Login() {
         localStorage.setItem("pendingEmail", emailOrPhone)
         return navigate("/verify-otp")
       }
-        navigate("/")
+      navigate(result.role === "admin" ? "/admin/dashboard" : "/products")
     } catch (err) {
       console.error("Login error:", err)
       setMessage(err.response?.data?.message || "Invalid email or password")
@@ -69,7 +66,7 @@ export default function Login() {
       />
 
       <Link
-        to="/"
+        to="/welcome"
         className="absolute top-6 left-6 text-white text-lg font-semibold hover:underline z-20"
       >
         ← Back to Home
@@ -80,28 +77,33 @@ export default function Login() {
       <div className="relative z-10 flex min-h-screen justify-center items-center px-6 md:px-16">
         <form
           onSubmit={handleLogin}
-          className="w-full max-w-sm backdrop-blur-md p-8 rounded-lg"
+          className="w-full max-w-sm backdrop-blur-md bg-white/5 border border-white/20 p-8 rounded-xl shadow-xl"
         >
           <div className="text-center">
             <h2 className="text-3xl font-semibold mb-2 text-green-600">
               Login
             </h2>
-            <p className="text-sm text-white mb-6">
+            <p className="text-sm text-white mb-2">
               Enter your credentials to continue
             </p>
+            <span className="inline-block text-xs px-2 py-1 rounded bg-green-500/20 text-green-300 border border-green-500/30">
+              Two-step verification enabled
+            </span>
           </div>
 
-          {showNotice && (
-            <div className="mb-4 p-3 rounded-md bg-yellow-500/20 border border-yellow-300/30 text-yellow-200 text-sm leading-relaxed">
-              <strong>Note:</strong> If you're a recruiter or a fellow developer, 
-              please use the demo login credentials provided.
+          <div className="mb-4 space-y-2">
+            <div className="p-2.5 rounded-md bg-yellow-500/20 border border-yellow-300/30 text-yellow-200 text-xs">
+              <strong>Demo User:</strong> {DUMMY_EMAIL} / {DUMMY_PASSWORD} (OTP: 111111)
             </div>
-          )}
+            <div className="p-2.5 rounded-md bg-amber-500/20 border border-amber-400/30 text-amber-200 text-xs">
+              <strong>Demo Admin:</strong> {ADMIN_EMAIL} / {ADMIN_PASSWORD} (OTP: 222222)
+            </div>
+          </div>
 
           <input
             type="text"
             placeholder="Email or Phone"
-            className="border-b border-gray-300 mb-6 w-full p-2 focus:outline-none focus:border-green-600 text-white"
+            className="border-b border-gray-300 mb-6 w-full p-2.5 bg-transparent focus:outline-none focus:border-green-500 text-white placeholder-gray-400"
             value={emailOrPhone}
             onChange={(e) => setEmailOrPhone(e.target.value)}
             required
@@ -110,7 +112,7 @@ export default function Login() {
           <input
             type="password"
             placeholder="Password"
-            className="border-b border-gray-300 mb-6 w-full p-2 focus:outline-none focus:border-green-600 text-white"
+            className="border-b border-gray-300 mb-6 w-full p-2.5 bg-transparent focus:outline-none focus:border-green-500 text-white placeholder-gray-400"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -119,7 +121,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-800 transition-colors duration-300 cursor-pointer"
+            className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors duration-300 cursor-pointer disabled:opacity-70 font-medium"
           >
             {loading ? "Logging in..." : "Login"}
           </button>
@@ -132,6 +134,16 @@ export default function Login() {
           </p>
 
           <p className="text-center text-sm text-gray-400 mt-4">
+            Admin?{" "}
+            <span
+              className="font-semibold cursor-pointer hover:underline text-amber-400"
+              onClick={() => navigate("/admin/login")}
+            >
+              Admin Login
+            </span>
+          </p>
+
+          <p className="text-center text-sm text-gray-400 mt-2">
             New user?{" "}
             <span
               className="font-semibold cursor-pointer hover:underline text-white"

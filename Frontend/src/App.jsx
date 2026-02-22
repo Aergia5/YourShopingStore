@@ -1,10 +1,10 @@
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
-import { useEffect, useState, Suspense, lazy } from "react";
+import { Suspense, lazy } from "react";
 import Navbar from "./components/Navbar";
-import Loader from "./components/Loader";
 
 const Welcome = lazy(() => import("./pages/Welcome"));
 const Login = lazy(() => import("./pages/Auth/Login"));
+const AdminLogin = lazy(() => import("./pages/Auth/AdminLogin"));
 const Signup = lazy(() => import("./pages/Auth/Signup"));
 const ForgotPassword = lazy(() => import("./pages/Auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/Auth/ResetPassword"));
@@ -28,22 +28,17 @@ const VerifyOTP = lazy(() => import("./pages/Auth/VerifyOTP"));
 
 function App() {
   const location = useLocation();
-  const [loading, setLoading] = useState(false);
 
   const AdminRoute = ({ children }) => {
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role");
-    return token && role === "admin" ? children : <Navigate to="/login" />;
+    return token && role === "admin" ? children : <Navigate to="/admin/login" />;
   };
 
-  useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => setLoading(false), 800); // duration for animation
-    return () => clearTimeout(timer);
-  }, [location.pathname]);
-
   const hideLayout = [
+    "/",
     "/login",
+    "/admin/login",
     "/register",
     "/forgot-password",
     "/reset-password",
@@ -52,13 +47,14 @@ function App() {
 
   return (
     <>
-      {loading && <Loader message="Almost there, promise . . . 🫰" />}
       {!hideLayout && <Navbar />}
-      <Suspense fallback={<Loader />}>
+      <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-100"><p className="text-gray-600 font-medium">Loading...</p></div>}>
         <Routes>
-          {/* Public routes */}
-          <Route path="/" element={<Welcome />} />
+          {/* Redirect root to login - app starts on login page */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/welcome" element={<Welcome />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/register" element={<Signup />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
@@ -72,7 +68,14 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/products/:id" element={<ProductPage />} />
+          <Route
+            path="/products/:id"
+            element={
+              <ProtectedRoute>
+                <ProductPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/cart"
             element={

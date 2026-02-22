@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom"
 import API, { BASE_URL } from "../../api/api"
 import { useSelector, useDispatch } from "react-redux"
 import { Star, ShoppingCart, Zap } from "lucide-react"
-import { formatUrl } from "../../utils/formatUrl"
+import { formatUrl, PLACEHOLDER_IMAGE } from "../../utils/formatUrl"
 import { addToCart } from "../../store/slices/cartSlice"
 
 export default function ProductPage() {
@@ -42,7 +42,7 @@ export default function ProductPage() {
         setProduct(p)
 
         const images = normalizeImages(p.image)
-        const first = images[0] ? formatUrl(images[0]) : "/placeholder.png"
+        const first = images[0] ? formatUrl(images[0]) : PLACEHOLDER_IMAGE
 
         setSelectedImage(first)
         setDiscount(p.discount || 15)
@@ -111,7 +111,7 @@ export default function ProductPage() {
           <div>
             <div className="bg-gray-100 rounded-2xl p-6 flex items-center justify-center mb-4">
               <img
-                src={selectedImage || "/placeholder.png"}
+                src={selectedImage || PLACEHOLDER_IMAGE}
                 alt={product.name}
                 className="w-full h-auto max-h-[300px] sm:max-h-[350px] md:max-h-[420px] object-contain"
               />
@@ -137,7 +137,7 @@ export default function ProductPage() {
                 })
               ) : (
                 <img
-                  src="/placeholder.png"
+                  src={PLACEHOLDER_IMAGE}
                   alt="placeholder"
                   className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg opacity-60"
                 />
