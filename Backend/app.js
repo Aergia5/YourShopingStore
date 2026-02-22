@@ -67,6 +67,7 @@ app.use("/api/admin", adminSetupRoute)
 // })
 
 app.use("/uploads", express.static(path.join(__dirname, "src", "uploads")))
+app.use("/img", express.static(path.join(__dirname, "..", "img")))
 
 
 app.get("/", (req, res) => {
