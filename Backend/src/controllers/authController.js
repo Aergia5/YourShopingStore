@@ -3,10 +3,10 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import User from "../models/User.js";
 import dotenv from "dotenv";
-import { sendMail } from "../utils/sendMail.js"; 
+import { sendMail } from "../utils/sendMail.js";
 import { sendSMS } from "../utils/sendSMS.js";
 import { verifySMS } from "../utils/verifySMS.js";
-import { otpTemplate } from "../utils/emailTemplates.js";
+import { otpTemplate, resetTemplate } from "../utils/emailTemplates.js";
 
 dotenv.config();
 
@@ -206,14 +206,16 @@ export const forgotPassword = async (req, res) => {
     user.resetTokenExpiry = new Date(Date.now() + 15 * 60 * 1000);
     await user.save();
 
-    const resetURL = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+    const resetURL = `${process.env.FRONTEND_URL || "http://localhost:5173"}/reset-password/${resetToken}`;
 
-    if (emailOrPhone.includes("@")) {
-      await sendMail(user.email, "Reset your password", resetURL);
-    } else {
-      await sendSMS(user.phone, `Reset your password: ${resetURL}`);
-    }
-    res.json({ message: "Password reset email sent successfully" });
+    // Always send reset link via email (user has email regardless of lookup method)
+    await sendMail({
+      to: user.email,
+      subject: "Reset your password - Your Shopping Store",
+      htmlContent: resetTemplate(resetURL),
+    });
+    // For phone-only lookup, 2Factor API doesn't support custom SMS - user gets email
+    res.json({ message: "Password reset link sent to your email" });
 
   } catch (err) {
     console.error("Forgot password error:", err);

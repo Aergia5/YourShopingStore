@@ -67,7 +67,8 @@ export default function VerifyOTP() {
         localStorage.removeItem("isDummy")
         const isAdminLogin = localStorage.getItem("adminLogin") === "true"
         localStorage.removeItem("adminLogin")
-        return navigate(result.role === "admin" || isAdminLogin ? "/admin/dashboard" : "/products")
+        const role = result.user?.role || result.role
+        return navigate(role === "admin" || isAdminLogin ? "/admin/dashboard" : "/home")
       } else {
         return setMessage(result.message || "Invalid OTP")
       }
@@ -105,7 +106,7 @@ export default function VerifyOTP() {
       />
 
       <Link
-        to="/welcome"
+        to="/home"
         className="absolute top-6 left-6 text-white text-lg font-semibold hover:underline z-20"
       >
         ← Back to Home

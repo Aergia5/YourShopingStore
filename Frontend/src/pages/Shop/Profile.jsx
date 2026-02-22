@@ -20,27 +20,40 @@ export default function Profile() {
 
 
   const fetchProfile = async () => {
+    if (!token) return
     try {
-      const res = await API.get("api/users/profile")
-      setProfile(res.data)
+      const [profileRes, addressesRes] = await Promise.all([
+        API.get("/api/users/profile"),
+        API.get("/api/users/addresses"),
+      ])
+      const userData = profileRes.data
+      setProfile(userData)
       setForm({
-        name: res.data.name || "",
-        email: res.data.email || "",
-        phone: res.data.phone || "",
+        name: userData.name || "",
+        email: userData.email || "",
+        phone: userData.phone || "",
       })
-      setAddresses(res.data.Addresses || [])
+      const rawAddrs = Array.isArray(addressesRes.data) ? addressesRes.data : (userData.addresses || [])
+      const addrs = rawAddrs.map((a) => ({ ...a, id: a.id || a._id }))
+      setAddresses(addrs)
     } catch (err) {
       console.error("Failed to load profile", err)
+      if (user) {
+        setProfile({ name: user.name, email: user.email, phone: user.phone })
+        setForm({ name: user.name || "", email: user.email || "", phone: user.phone || "" })
+      } else {
+        setProfile({})
+      }
     }
   }
 
   useEffect(() => {
     fetchProfile()
-  }, [])
+  }, [token])
 
   const handleProfileUpdate = async () => {
     try {
-      await API.put("api/users/profile", form)
+      await API.put("/api/users/profile", form)
       alert("Profile updated!")
       fetchProfile()
     } catch (err) {
@@ -51,7 +64,7 @@ export default function Profile() {
 
   const handleAddAddress = async () => {
     try {
-      await API.post("api/users/address", newAddress)
+      await API.post("/api/users/address", newAddress)
       alert("Address added!")
       setNewAddress({
         fullName: "",
@@ -71,13 +84,14 @@ export default function Profile() {
   const handleDeleteAddress = async (id) => {
     if (!window.confirm("Are you sure you want to delete this address?")) return
     try {
-      await API.delete(`api/users/address/${id}`)
+      await API.delete(`/api/users/address/${id}`)
       fetchProfile()
     } catch (err) {
       console.error("Failed to delete address", err)
     }
   }
 
+  if (!token) return <p className="text-center mt-20">Please log in to view your profile.</p>
   if (!profile) return <p className="text-center mt-20">Loading profile...</p>
 
   return (
@@ -88,6 +102,7 @@ export default function Profile() {
 
       <div className="mb-8">
         <h3 className="text-xl font-semibold mb-4 text-gray-600">Personal Info</h3>
+        <p className="text-sm text-gray-500 mb-4">Manage your account details.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <input
             type="text"

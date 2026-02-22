@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
 import API from "../../api/api"
-import { useDispatch } from "react-redux"
 
 
 export const fetchCart = createAsyncThunk("cart/fetchCart", async () => {

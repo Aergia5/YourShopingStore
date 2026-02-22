@@ -1,11 +1,18 @@
 import express from "express";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 import cors from "cors";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const router = express.Router();
 
 router.use(cors());
+
+// Sanitize filename to prevent path traversal (e.g. ../../../etc/passwd)
+const sanitizeFilename = (name) => name.replace(/[^a-zA-Z0-9._-]/g, "");
 
 // Video streaming route
 router.get("/:filename", (req, res) => {
@@ -14,7 +21,9 @@ router.get("/:filename", (req, res) => {
     return res.status(400).send("Requires Range header");
   }
 
-  const videoPath = path.resolve(`src/uploads/${req.params.filename}`);
+  const safeFilename = sanitizeFilename(req.params.filename);
+  if (!safeFilename) return res.status(400).send("Invalid filename");
+  const videoPath = path.join(__dirname, "..", "uploads", safeFilename);
   if (!fs.existsSync(videoPath)) {
     return res.status(404).send("Video not found");
   }

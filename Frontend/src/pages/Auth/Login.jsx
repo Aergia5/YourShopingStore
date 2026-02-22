@@ -46,7 +46,7 @@ export default function Login() {
         localStorage.setItem("pendingEmail", emailOrPhone)
         return navigate("/verify-otp")
       }
-      navigate(result.role === "admin" ? "/admin/dashboard" : "/products")
+      navigate(result.role === "admin" ? "/admin/dashboard" : "/home")
     } catch (err) {
       console.error("Login error:", err)
       setMessage(err.response?.data?.message || "Invalid email or password")
@@ -66,7 +66,7 @@ export default function Login() {
       />
 
       <Link
-        to="/welcome"
+        to="/home"
         className="absolute top-6 left-6 text-white text-lg font-semibold hover:underline z-20"
       >
         ← Back to Home

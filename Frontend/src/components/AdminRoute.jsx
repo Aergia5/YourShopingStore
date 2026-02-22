@@ -1,16 +1,17 @@
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { useSelector } from "react-redux";
 
 const AdminRoute = ({ children }) => {
-  const { user } = useAuth();
+  const user = useSelector((state) => state.auth.user);
+  const token = useSelector((state) => state.auth.token);
+  const role = user?.role || (token && localStorage.getItem("role"));
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
+  if (!user && !token) {
+    return <Navigate to="/admin/login" replace />;
   }
 
-  if (user.role !== "admin") {
-    // Redirect non-admin users to homepage
-    return <Navigate to="/" replace />;
+  if (role !== "admin") {
+    return <Navigate to="/admin/login" replace />;
   }
 
   return children;

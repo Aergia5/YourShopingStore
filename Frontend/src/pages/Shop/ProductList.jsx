@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"
 import API, { BASE_URL } from "../../api/api"
-import { PLACEHOLDER_IMAGE } from "../../utils/formatUrl"
+import { formatUrl as formatImageUrl, PLACEHOLDER_IMAGE } from "../../utils/formatUrl"
 import { useNavigate, useLocation } from "react-router-dom"
 import { motion } from "framer-motion"
 import { Star } from "lucide-react"
@@ -71,13 +71,12 @@ export default function ProductList() {
     return []
   }
   
-  const formatUrl = (url) => {
+  const getImageSrc = (url) => {
     if (!url) return PLACEHOLDER_IMAGE
-    if (url.startsWith("http://") || url.startsWith("https://")) return url
-    return `${BASE_URL.replace(/\/$/, "")}${url.startsWith("/") ? "" : "/"}${url}`
+    if (url === PLACEHOLDER_IMAGE || !url.startsWith("/img")) return url
+    return formatImageUrl(url) || PLACEHOLDER_IMAGE
   }
 
-  
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-20 px-6 font-[Poppins]">
       <h2 className="text-4xl font-semibold mb-12 text-center text-gray-800 mt-15">
@@ -123,28 +122,22 @@ export default function ProductList() {
               <div className="relative group flex-shrink-0">
                 <div className="relative w-full h-56 flex items-center justify-center p-6">
                 {(() => {
-                const formatUrl = (url) => {
-                  if (!url) return PLACEHOLDER_IMAGE
-                  if (url.startsWith("http://") || url.startsWith("https://")) {
-                    return url
-                  }
-                  return `${BASE_URL.replace(/\/$/, "")}${url.startsWith("/") ? "" : "/"}${url}`
-                }
-
-                  const imgSrc1 = img1 ? formatUrl(img1) : PLACEHOLDER_IMAGE
-                  const imgSrc2 = img2 ? formatUrl(img2) : imgSrc1
+                  const imgSrc1 = getImageSrc(img1)
+                  const imgSrc2 = getImageSrc(img2) || imgSrc1
 
                   return (
                     <>
                       <img
                         src={imgSrc1}
                         alt={p.name}
+                        onError={(e) => { e.target.onerror = null; e.target.src = PLACEHOLDER_IMAGE; }}
                         className="
                           absolute inset-0 m-auto w-full h-[400px] bg-[#f7f7f7] object-contain transition-all duration-500 opacity-100 group-hover:opacity-0 scale-100 group-hover:scale-95 mt-0.5"
                       />
                       <img
                         src={imgSrc2}
                         alt={p.name + '-alt'}
+                        onError={(e) => { e.target.onerror = null; e.target.src = PLACEHOLDER_IMAGE; }}
                         className="
                           absolute inset-0 m-auto w-full h-full object-contain transition-all duration-500 opacity-0 group-hover:opacity-100 scale-105 group-hover:scale-100 mt-8"
                       />

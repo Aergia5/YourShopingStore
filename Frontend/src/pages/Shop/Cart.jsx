@@ -58,11 +58,11 @@ export default function Cart() {
         quantity: item.quantity
       }))
 
-      await API.post("/api/orders", { cartItems, address })
+      const { data } = await API.post("/api/orders", { cartItems, address })
 
       dispatch(fetchCart())
       setAddress("")
-      navigate("/checkout")
+      navigate("/checkout", { state: { orderId: data.orderId, totalAmount: total } })
     } catch (err) {
       console.error("Order failed:", err)
       alert(err.response?.data?.message || "Failed to place order")

@@ -48,6 +48,8 @@ const productImages = {
   "File Folder Set": [encodePath("file folder set.jpg")],
 };
 
+const DEFAULT_IMAGE = encodePath("mangoes.jpg"); // Fallback for products without mapping
+
 async function addImages() {
   try {
     await connectDB();
@@ -55,31 +57,25 @@ async function addImages() {
 
     const products = await Product.find();
     let updated = 0;
-    let skipped = 0;
 
     for (const product of products) {
-      const imageUrls = productImages[product.name];
-      
-      if (imageUrls && imageUrls.length > 0) {
-        // Convert to the format expected by the frontend (array of objects with url)
-        const images = imageUrls.map((url, index) => ({
-          url: url,
-          public_id: `product_${product._id}_${index}` // Placeholder public_id
-        }));
+      const imageUrls = productImages[product.name] || [DEFAULT_IMAGE];
 
-        product.image = images;
-        await product.save();
-        updated++;
-        console.log(`✅ Added images to: ${product.name}`);
-      } else {
-        skipped++;
-        console.log(`⚠️  No image mapping found for: ${product.name}`);
-      }
+      // Convert to the format expected by the frontend (array of objects with url)
+      const images = imageUrls.map((url, index) => ({
+        url: url,
+        public_id: `product_${product._id}_${index}`,
+      }));
+
+      product.image = images;
+      await product.save();
+      updated++;
+      const usedDefault = !productImages[product.name];
+      console.log(`✅ ${product.name}${usedDefault ? " (default image)" : ""}`);
     }
 
     console.log(`\n✅ Image update complete!`);
     console.log(`   Updated: ${updated} products`);
-    console.log(`   Skipped: ${skipped} products`);
     console.log(`   Total: ${products.length} products`);
 
     process.exit(0);

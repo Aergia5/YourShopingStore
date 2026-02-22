@@ -69,7 +69,7 @@ export default function ProductPage() {
 
   const imageList = normalizeImages(product.image)
 
-    const handleAddToCart = async (redirectTo = "/cart") => {
+    const handleAddToCart = async (redirectTo = null) => {
       if (!token) {
         alert("Please login to add items to cart")
         navigate("/login")
@@ -82,18 +82,20 @@ export default function ProductPage() {
       }
       
       try {
-        console.log("Adding to cart:", { productId: product.id, quantity: 1 })
         const result = await dispatch(addToCart({ productId: product.id, quantity: 1 }))
-        console.log("Add to cart result:", result)
         
         if (addToCart.fulfilled.match(result)) {
-          console.log("Successfully added to cart, navigating to:", redirectTo)
+          // Add to Cart: stay on product page, show success
+          if (!redirectTo) {
+            alert("Added to cart! Use the cart icon to view your cart.")
+            return
+          }
+          // Buy Now: add to cart then go to checkout
           navigate(redirectTo)
         } else if (addToCart.rejected.match(result)) {
           const errorMsg = typeof result.payload === 'string' 
             ? result.payload 
             : result.payload?.message || "Failed to add product to cart"
-          console.error("Add to cart failed:", errorMsg)
           alert(errorMsg)
         }
       } catch (error) {
@@ -113,6 +115,7 @@ export default function ProductPage() {
               <img
                 src={selectedImage || PLACEHOLDER_IMAGE}
                 alt={product.name}
+                onError={(e) => { e.target.onerror = null; e.target.src = PLACEHOLDER_IMAGE; }}
                 className="w-full h-auto max-h-[300px] sm:max-h-[350px] md:max-h-[420px] object-contain"
               />
             </div>
@@ -126,6 +129,7 @@ export default function ProductPage() {
                       key={i}
                       src={fullUrl}
                       alt={`thumb-${i}`}
+                      onError={(e) => { e.target.onerror = null; e.target.src = PLACEHOLDER_IMAGE; }}
                       onClick={() => setSelectedImage(fullUrl)}
                       className={`w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg cursor-pointer border-2 ${
                         selectedImage === fullUrl
@@ -198,14 +202,14 @@ export default function ProductPage() {
 
             <div className="flex flex-col sm:flex-row gap-4 mt-6">
               <button
-                onClick={() => handleAddToCart("/cart")}
+                onClick={() => handleAddToCart()}
                 className="flex items-center justify-center gap-2 bg-gray-600 text-white px-6 py-3 rounded-lg text-lg font-medium hover:bg-slate-700 transition cursor-pointer"
               >
                 <ShoppingCart size={18} /> Add to Cart
               </button>
 
               <button
-                onClick={() => handleAddToCart("/checkout")}
+                onClick={() => handleAddToCart("/cart")}
                 className="flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg text-lg font-medium hover:bg-green-700 transition cursor-pointer"
               >
                 <Zap size={18} /> Buy Now

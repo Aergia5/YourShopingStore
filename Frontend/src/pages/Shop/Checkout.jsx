@@ -1,12 +1,18 @@
 import React, { useState } from "react";
 import API from "../../api/api";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { CreditCard, Truck, ShieldCheck, MapPin } from "lucide-react";
 import PlaceOrderButton from "../../components/PlaceOrderButton";
 
 function Checkout() {
+  const location = useLocation();
+  const cart = useSelector((state) => state.cart.items) || [];
+  const authUser = useSelector((state) => state.auth.user);
+  const cartTotal = cart.reduce((sum, item) => sum + (item.Product?.price || 0) * (item.quantity || 0), 0);
+  const amountFromState = location.state?.totalAmount;
+  const amount = (amountFromState ?? cartTotal) || 0;
   const [paymentMethod, setPaymentMethod] = useState("COD");
-  const [amount, setAmount] = useState(1000);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   
@@ -44,27 +50,41 @@ function Checkout() {
       }
 
       const token = localStorage.getItem("token");
-      const { data: order } = await API.post(
+      const { data } = await API.post(
         "/api/payments/create-order",
         { amount },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      const razorpayOrder = data.razorpayOrder;
+      if (!razorpayOrder) {
+        alert("Failed to create payment order.");
+        return;
+      }
 
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-        amount: order.amount,
-        currency: "NPR",
+        amount: razorpayOrder.amount,
+        currency: razorpayOrder.currency || "INR",
         name: "ShopEasy",
         description: "Order Payment",
-        order_id: order.id,
+        order_id: razorpayOrder.id,
         handler: async function (response) {
-        alert("Payment processing. Confirmation will appear shortly.")
-        navigate("/orders")
+          try {
+            await API.post("/api/payments/verify", {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            }, { headers: { Authorization: `Bearer ${token}` } });
+          } catch (e) {
+            console.error("Verify error:", e);
+          }
+          alert("Payment successful!");
+          navigate("/orders");
         },
         prefill: {
-          name: "Ashutosh Singh",
-          email: "ashutoshadhikari@outlook.com",
-          contact: "9871437696",
+          name: authUser?.name || "",
+          email: authUser?.email || "",
+          contact: authUser?.phone || "",
         },
         theme: { color: "#4F46E5" },
       };

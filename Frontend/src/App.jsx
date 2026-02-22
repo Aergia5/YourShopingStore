@@ -2,7 +2,7 @@ import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import Navbar from "./components/Navbar";
 
-const Welcome = lazy(() => import("./pages/Welcome"));
+const Home = lazy(() => import("./pages/Home"));
 const Login = lazy(() => import("./pages/Auth/Login"));
 const AdminLogin = lazy(() => import("./pages/Auth/AdminLogin"));
 const Signup = lazy(() => import("./pages/Auth/Signup"));
@@ -29,14 +29,7 @@ const VerifyOTP = lazy(() => import("./pages/Auth/VerifyOTP"));
 function App() {
   const location = useLocation();
 
-  const AdminRoute = ({ children }) => {
-    const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role");
-    return token && role === "admin" ? children : <Navigate to="/admin/login" />;
-  };
-
   const hideLayout = [
-    "/",
     "/login",
     "/admin/login",
     "/register",
@@ -50,9 +43,9 @@ function App() {
       {!hideLayout && <Navbar />}
       <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-100"><p className="text-gray-600 font-medium">Loading...</p></div>}>
         <Routes>
-          {/* Redirect root to login - app starts on login page */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/welcome" element={<Welcome />} />
+          {/* Root redirects to home */}
+          <Route path="/" element={<Navigate to="/home" replace />} />
+          <Route path="/home" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/register" element={<Signup />} />

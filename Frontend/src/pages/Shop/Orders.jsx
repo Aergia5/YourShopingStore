@@ -83,13 +83,13 @@ export default function Orders() {
               </div>
               <span
                 className={`px-3 py-1 text-sm font-semibold rounded-full ${
-                  order.status === "Delivered"
+                  order.status === "DELIVERED"
                     ? "bg-green-100 text-green-700"
-                    : order.status === "Pending"
+                    : order.status === "PENDING"
                     ? "bg-yellow-100 text-yellow-700"
-                    : order.status === "Cancelled"
+                    : order.status === "CANCELLED"
                     ? "bg-red-100 text-red-700"
-                    : "bg-blue-100 text-green-600"
+                    : "bg-blue-100 text-blue-600"
                 }`}
               >
                 {order.status}
@@ -97,34 +97,35 @@ export default function Orders() {
             </div>
 
             <div className="divide-y">
-            {order.OrderItems
-               .filter(item => item.Product)
-               .map((item) => {
-                 const img = getFirstImage(item.Product.image)
+            {(order.items || [])
+               .filter(item => item.productId)
+               .map((item, idx) => {
+                 const product = item.productId
+                 const img = getFirstImage(product?.image)
                  const imgSrc = img ? formatUrl(img) : PLACEHOLDER_IMAGE
 
                  return (
                    <div
-                     key={item.id}
+                     key={item.productId?.id || item.productId?._id || idx}
                      className="py-3 flex items-center justify-between gap-3"
                    >
                      <div className="flex items-center gap-4">
                        <img
                          src={imgSrc}
-                         alt={item.Product.name}
+                         alt={product?.name || "Product"}
                          className="w-16 h-16 rounded-md object-cover"
                        />
                        <div>
                          <p className="font-medium text-gray-800">
-                           {item.Product.name}
+                           {product?.name || "Product"}
                          </p>
                          <p className="text-sm text-gray-500">
-                           {item.quantity} × NPR {item.price.toFixed(2)}
+                           {item.quantity} × NPR {(item.price || 0).toFixed(2)}
                          </p>
                        </div>
                      </div>
                      <p className="text-teal-700 font-semibold">
-                       NPR {(item.quantity * item.price).toFixed(2)}
+                       NPR {((item.quantity || 0) * (item.price || 0)).toFixed(2)}
                      </p>
                    </div>
                  )

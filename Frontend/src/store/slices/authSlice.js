@@ -2,7 +2,13 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
 import API from "../../api/api"
 
 const token = localStorage.getItem("token")
-const user = JSON.parse(localStorage.getItem("user") || "null")
+let user = null
+try {
+  const saved = localStorage.getItem("user")
+  if (saved && saved !== "undefined") user = JSON.parse(saved)
+} catch {
+  user = null
+}
 
 export const login = createAsyncThunk(
   "auth/login",
@@ -46,16 +52,17 @@ export const verifyOtp = createAsyncThunk(
       const isAdminDemo = localStorage.getItem("adminLogin") === "true";
       const role = isAdminDemo ? "admin" : "user";
       const finalUser = { email: emailOrPhone, role, demo: true };
+      const dummyToken = role === "admin" ? "DUMMY_TOKEN_ADMIN" : "DUMMY_TOKEN";
 
-      localStorage.setItem("token", "DUMMY_TOKEN");
+      localStorage.setItem("token", dummyToken);
       localStorage.setItem("user", JSON.stringify(finalUser));
       localStorage.setItem("role", role);
       localStorage.removeItem("dummyOtp");
       localStorage.removeItem("adminLogin");
 
-      API.defaults.headers.common["Authorization"] = "Bearer DUMMY_TOKEN";
+      API.defaults.headers.common["Authorization"] = `Bearer ${dummyToken}`;
 
-      return { success: true, user: finalUser, token: "DUMMY_TOKEN" };
+      return { success: true, user: finalUser, token: dummyToken };
     }
 
     const res = await API.post("/api/auth/verify-otp", { emailOrPhone, otp });

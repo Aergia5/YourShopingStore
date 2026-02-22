@@ -238,7 +238,7 @@ export default function Welcome() {
      <div className="flex flex-col md:flex-row w-full gap-4">
       <div
         className="relative group overflow-hidden rounded-2xl h-[220px] sm:h-[300px] md:h-[400px] md:w-1/3 w-full cursor-pointer"
-        onClick={() => handleCategoryClick("grocery")}
+        onClick={() => handleCategoryClick("Groceries")}
       >
         <video
           src="https://res.cloudinary.com/djm65usjg/video/upload/v1762694529/grocery_bdgt9e.webm"
@@ -250,8 +250,8 @@ export default function Welcome() {
           className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110"
         />
         <AnimatedCategoryButton 
-          label="Grocery"
-          onClick={() => handleCategoryClick("grocery")}
+          label="Groceries"
+          onClick={() => handleCategoryClick("Groceries")}
           className="absolute bottom-20 left-1/4 -translate-x-1/2"
         />
       </div>
@@ -269,10 +269,10 @@ export default function Welcome() {
           preload="auto"
           className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110"
         />
-       <AnimatedCategoryButton 
+        <AnimatedCategoryButton 
           label="Personal Care"
           onClick={() => handleCategoryClick("Personal Care")}
-          className="absolute bottom-20 left-192"
+          className="absolute bottom-20 left-1/4 -translate-x-1/2"
         />
       </div>
     </div>

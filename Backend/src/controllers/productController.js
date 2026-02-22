@@ -39,9 +39,10 @@ export const getProducts = async (req, res) => {
       query.name = { $regex: search, $options: "i" }
     }
     if (category) {
-      const normalizedCategory = category.toLowerCase().replace(/[\s-]+/g, "")
+      // Allow matching "Personal Care" when query is "personalcare" or "Personal Care"
+      const pattern = category.trim().toLowerCase().replace(/[\s-]+/g, "\\s*")
       const categoryDoc = await Category.findOne({
-        name: { $regex: normalizedCategory, $options: "i" }
+        name: { $regex: pattern, $options: "i" }
       })
       if (categoryDoc) {
         query.categoryId = categoryDoc._id
@@ -99,9 +100,14 @@ export const updateProduct = async (req, res) => {
 
     let updatedImages = product.image || []
 
-    if (removeImages && Array.isArray(JSON.parse(removeImages))) {
-      const removeList = JSON.parse(removeImages)
-
+    if (removeImages) {
+      let removeList = []
+      try {
+        const parsed = JSON.parse(removeImages)
+        removeList = Array.isArray(parsed) ? parsed : []
+      } catch {
+        removeList = []
+      }
       for (const public_id of removeList) {
         await cloudinary.uploader.destroy(public_id)
         updatedImages = updatedImages.filter(img => img.public_id !== public_id)

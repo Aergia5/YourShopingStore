@@ -124,8 +124,7 @@ export const addToCart = async (req, res) => {
       console.log("Added new item to cart")
     }
 
-    product.quantity -= quantity
-    await product.save()
+    // Stock is reserved only on order placement, not when adding to cart
     await cart.save()
 
     await cart.populate("items.productId")
@@ -176,8 +175,7 @@ export const updateCartItem = async (req, res) => {
     if (diff > 0 && product.quantity < diff) {
       return res.status(400).json({ message: "Not enough stock available" })
     }
-    product.quantity -= diff
-    await product.save()
+    // Stock is reserved only on order placement, not on cart update
 
     item.quantity = quantity
     await cart.save()
@@ -217,11 +215,7 @@ export const removeFromCart = async (req, res) => {
     const item = cart.items.id(itemId)
     if (!item) return res.status(404).json({ message: "Cart item not found" })
 
-    const product = await Product.findById(item.productId)
-    if (product) {
-      product.quantity += item.quantity
-      await product.save()
-    }
+    // Stock was never deducted on add (only on order), so no need to restore
 
     cart.items.pull(itemId)
     await cart.save()

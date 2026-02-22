@@ -2,6 +2,7 @@ import Razorpay from "razorpay"
 import dotenv from "dotenv"
 import { Order } from "../models/Order.js"
 import crypto from "crypto"
+import { toObjectId } from "../utils/toObjectId.js"
 
 dotenv.config()
 
@@ -20,7 +21,8 @@ export const createOrder = async (req, res) => {
       return res.status(503).json({ message: "Payment gateway not configured. Add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to .env" })
     }
     const { amount } = req.body
-    const userId = req.user.id
+    const userId = toObjectId(req.user.id)
+    if (!userId) return res.status(400).json({ message: "Invalid user ID" })
 
     const order = await Order.create({
       userId,
@@ -50,6 +52,27 @@ export const verifyPayment = async (req, res) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body
 
+    const secret = process.env.RAZORPAY_KEY_SECRET
+    if (!secret) {
+      return res.status(503).json({ message: "Payment verification not configured" })
+    }
+
+    const expectedSignature = crypto
+      .createHmac("sha256", secret)
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+      .digest("hex")
+
+    if (expectedSignature !== razorpay_signature) {
+      return res.status(400).json({ message: "Invalid payment signature" })
+    }
+
+    const order = await Order.findOne({ razorpayOrderId: razorpay_order_id })
+    if (order) {
+      order.paymentStatus = "PAID"
+      order.status = "PROCESSING"
+      await order.save()
+    }
+
     res.status(200).json({ message: "Payment verified successfully" })
   } catch (err) {
     console.error("Payment verification failed:", err)
@@ -60,6 +83,11 @@ export const verifyPayment = async (req, res) => {
 export const razorpayWebhook = async (req, res) => {
   console.log("🔔 Razorpay Webhook Received")
   const secret = process.env.RAZORPAY_WEBHOOK_SECRET
+
+  if (!secret) {
+    console.warn("RAZORPAY_WEBHOOK_SECRET not set, skipping signature verification")
+    return res.status(503).json({ message: "Webhook not configured" })
+  }
 
   const signature = req.headers["x-razorpay-signature"]
   const expected = crypto

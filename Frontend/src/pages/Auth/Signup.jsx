@@ -47,7 +47,7 @@ export default function Signup() {
       />
 
         <Link
-            to="/welcome"
+            to="/home"
             className="absolute top-6 left-6 text-white text-lg font-semibold hover:underline z-20"
           >
             ← Back to Home

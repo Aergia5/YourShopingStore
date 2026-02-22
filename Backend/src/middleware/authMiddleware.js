@@ -13,10 +13,10 @@ export const verifyToken = (req, res, next) => {
 
   const token = authHeader.split(" ")[1];
 
-  if (token === "DUMMY_TOKEN") {
+  if (token === "DUMMY_TOKEN" || token === "DUMMY_TOKEN_ADMIN") {
     req.user = {
       id: "11111111-1111-1111-1111-111111111111",
-      role: "user",
+      role: token === "DUMMY_TOKEN_ADMIN" ? "admin" : "user",
       isDummy: true,
     };
     return next();

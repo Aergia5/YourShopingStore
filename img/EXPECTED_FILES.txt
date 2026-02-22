@@ -1,0 +1,57 @@
+Product images expected in this folder (exact names, case-sensitive on some systems):
+
+Fruits:
+  apple.jpg
+  banana.jpg
+  orange.jpg
+  mangoes.jpg
+
+Vegetables:
+  tomatoes.jpg
+  onions.jpg
+  potatos.jpg
+
+Electronics:
+  wireless earbuds.jpg
+  Bluetooth speaker.jpg
+  usb c cable.jpg
+  phone stand.jpg
+
+Watches:
+  smart watch.jpg
+  classic analog watch.jpg
+  designer sports watch.jpg
+  Chronograph Watch.jpg
+
+Clothing:
+  t-shirt.jpg
+  jeans.jpg
+  hoodie.jpg
+  jacket.jpg
+  dress.jpg
+
+Groceries:
+  Wheat flour.jpeg
+  sugar.jpg
+  salt.jpg
+  tea leaves.jpg
+  rice.jpg
+  cooking oil.jpg
+
+Stationery:
+  Pen set 10 piece.jpg
+  A4 paper 50 piece.jpg
+  Stapler.jpg
+  file folder set.jpg
+  notebook.jpg
+  highlighter.jpg
+
+Personal Care:
+  body soap.jpg
+  Deodrant.jpg
+  face cream.jpg
+  Hair oil.jpg
+  shampoo.jpg
+  toothpaste.jpg
+
+If an image doesn't load, ensure the filename matches exactly (including spaces and extension).

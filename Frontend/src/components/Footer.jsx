@@ -10,6 +10,10 @@ const Footer = () => {
         { text: "Vegetables", path: "/products?category=vegetables" },
         { text: "Electronics", path: "/products?category=electronics" },
         { text: "Watches", path: "/products?category=watches" },
+        { text: "Clothing", path: "/products?category=clothing" },
+        { text: "Groceries", path: "/products?category=groceries" },
+        { text: "Stationery", path: "/products?category=stationery" },
+        { text: "Personal Care", path: "/products?category=Personal%20Care" },
       ],
     },
     {

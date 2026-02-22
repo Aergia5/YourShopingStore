@@ -21,11 +21,11 @@ const defaultCategories = [
   "Fruits",
   "Vegetables",
   "Electronics",
-  "Grocery",
+  "Groceries",
   "Clothing",
   "Stationery",
   "Watches",
-  "Personal Care"
+  "Personal Care",
 ];
 
 export const getCategories = async (req, res) => {

@@ -5,9 +5,21 @@ import { motion } from "framer-motion"
 import { fetchAllOrders, updateOrderStatus } from "../../store/slices/ordersSlice"
 import { formatUrl, PLACEHOLDER_IMAGE } from "../../utils/formatUrl"
 
+function getFirstImage(image) {
+  if (!image) return null
+  if (Array.isArray(image)) {
+    const first = image[0]
+    if (typeof first === "string") return first
+    if (typeof first === "object" && first?.url) return first.url
+    return typeof first === "string" ? first : null
+  }
+  if (typeof image === "string") return image
+  return null
+}
+
 export default function ManageOrders() {
   const dispatch = useDispatch()
-  const { list: orders, loading } = useSelector(state => state.orders)
+  const { list: orders = [], loading, error } = useSelector(state => state.orders)
 
   useEffect(() => {
     dispatch(fetchAllOrders())
@@ -15,6 +27,21 @@ export default function ManageOrders() {
 
   if (loading) {
     return <div className="flex justify-center items-center h-64">Loading orders...</div>
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-100 to-teal-50 p-8 flex flex-col items-center justify-center">
+        <p className="text-red-600 mb-4">{error}</p>
+        <button
+          type="button"
+          onClick={() => dispatch(fetchAllOrders())}
+          className="bg-teal-600 text-white px-4 py-2 rounded-lg"
+        >
+          Retry
+        </button>
+      </div>
+    )
   }
 
   return (
@@ -58,25 +85,32 @@ export default function ManageOrders() {
               </div>
 
               <div className="divide-y border-t mt-4 bg-gray-50 rounded-lg p-3">
-                {order.OrderItems.map(item => (
-                  <div key={item.id} className="flex justify-between items-center py-3">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={formatUrl(item.Product?.image) || PLACEHOLDER_IMAGE}
-                        className="w-16 h-16 object-cover rounded-md shadow"
-                      />
-                      <div>
-                        <p className="font-medium">{item.Product?.name}</p>
-                        <p className="text-sm text-gray-500">
-                          {item.quantity} × NPR {item.price.toFixed(2)}
-                        </p>
+                {(order.items || []).map((item, idx) => {
+                  const product = item.productId
+                  const imgSrc = product?.image
+                    ? formatUrl(getFirstImage(product.image)) || PLACEHOLDER_IMAGE
+                    : PLACEHOLDER_IMAGE
+                  return (
+                    <div key={item.productId?.id ?? item.productId?._id ?? idx} className="flex justify-between items-center py-3">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={imgSrc}
+                          alt={product?.name ?? "Product"}
+                          className="w-16 h-16 object-cover rounded-md shadow"
+                        />
+                        <div>
+                          <p className="font-medium">{product?.name ?? "Product"}</p>
+                          <p className="text-sm text-gray-500">
+                            {item.quantity} × NPR {(item.price ?? 0).toFixed(2)}
+                          </p>
+                        </div>
                       </div>
+                      <p className="font-semibold text-teal-700">
+                        NPR {((item.price ?? 0) * (item.quantity ?? 0)).toFixed(2)}
+                      </p>
                     </div>
-                    <p className="font-semibold text-teal-700">
-                      NPR {(item.price * item.quantity).toFixed(2)}
-                    </p>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
 
               <div className="mt-4 flex justify-between items-center">

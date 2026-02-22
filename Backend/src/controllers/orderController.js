@@ -1,12 +1,14 @@
 import { Order } from "../models/Order.js"
 import { Cart } from "../models/Cart.js"
 import Product from "../models/Product.js"
+import { toObjectId } from "../utils/toObjectId.js"
 
 export const placeOrder = async (req, res) => {
   const { cartItems, address } = req.body
-  const userId = req.user.id
+  const userId = toObjectId(req.user.id)
 
   try {
+    if (!userId) return res.status(400).json({ message: "Invalid user ID" })
     if (!cartItems || cartItems.length === 0)
       return res.status(400).json({ message: "Cart is empty" })
 
@@ -35,7 +37,7 @@ export const placeOrder = async (req, res) => {
     }
 
     const order = await Order.create({
-      userId,
+      userId: userId,
       totalAmount,
       address,
       status: "PENDING",
@@ -44,7 +46,7 @@ export const placeOrder = async (req, res) => {
       items: orderItems,
     })
 
-    const userCart = await Cart.findOne({ userId })
+    const userCart = await Cart.findOne({ userId: userId })
     if (userCart) {
       userCart.items = []
       await userCart.save()
@@ -91,7 +93,8 @@ export const getAllOrders = async (req, res) => {
 
 export const getUserOrders = async (req, res) => {
   try {
-    const userId = req.user.id
+    const userId = toObjectId(req.user.id)
+    if (!userId) return res.status(400).json({ message: "Invalid user ID" })
     const orders = await Order.find({ userId })
       .populate({
         path: "items.productId",
@@ -128,7 +131,8 @@ export const getOrderById = async (req, res) => {
 
     if (!order) return res.status(404).json({ message: "Order not found" })
 
-    if (order.userId.toString() !== req.user.id && req.user.role !== "admin")
+    const currentUserId = toObjectId(req.user.id)
+    if ((!currentUserId || !order.userId.equals(currentUserId)) && req.user.role !== "admin")
       return res.status(403).json({ message: "Access denied" })
 
     const json = order.toObject();
