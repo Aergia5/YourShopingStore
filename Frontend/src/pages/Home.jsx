@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import API from "../api/api";
 import { formatUrl, PLACEHOLDER_IMAGE } from "../utils/formatUrl";
 import AnimatedCategoryButton from "../components/AnimatedCategoryButton";
-import NewsletterBox from "../components/NewsletterBox";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -245,8 +244,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      <NewsletterBox />
     </div>
   );
 }

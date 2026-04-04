@@ -20,17 +20,15 @@ const Footer = () => {
       title: "WEBSITE",
       links: [
         { text: "Home", path: "/" },
-        { text: "Privacy Policy", path: "/" },
-        { text: "Become Plus Member", path: "/" },
-        { text: "Create Your Store", path: "/" },
+
       ],
     },
     {
       title: "CONTACT",
       links: [
-        { text: "+91 987-123-123", path: "/" },
+        { text: "+977 9876543210", path: "/" },
         { text: "contact@shoppingstore.com", path: "/" },
-        { text: "Delhi, India", path: "/" },
+        { text: "Kathmandu, Nepal", path: "/" },
       ],
     },
   ];
