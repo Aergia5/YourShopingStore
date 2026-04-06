@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import API, { BASE_URL } from "../../api/api"
 import { formatUrl as formatImageUrl, PLACEHOLDER_IMAGE } from "../../utils/formatUrl"
 import { useNavigate, useLocation } from "react-router-dom"
@@ -22,13 +22,20 @@ export default function ProductList() {
     try {
       const params = {}
       if (selectedCategory) params.category = selectedCategory
-      if (debouncedSearch) params.search = debouncedSearch
       const res = await API.get("/api/products", { params })
       setProducts(res.data)
     } catch (err) {
       console.error("Failed to load products:", err)
     }
   }
+
+  const filteredProducts = useMemo(() => {
+    const q = debouncedSearch.trim().toLowerCase()
+    if (!q) return products
+    return products.filter((p) =>
+      (p.name || "").toLowerCase().includes(q)
+    )
+  }, [products, debouncedSearch])
 
   const fetchCategories = async () => {
     try {
@@ -45,7 +52,7 @@ export default function ProductList() {
 
   useEffect(() => {
     fetchProducts()
-  }, [selectedCategory, debouncedSearch])
+  }, [selectedCategory])
   
 
   useEffect(() => {
@@ -101,9 +108,14 @@ export default function ProductList() {
                     <p className="text-gray-500 text-lg mb-4">No products found.</p>
                     <p className="text-gray-400 text-sm">Products will appear here once they are added to the store.</p>
                   </div>
+                ) : filteredProducts.length === 0 ? (
+                  <div className="text-center py-20">
+                    <p className="text-gray-500 text-lg mb-4">No products match your search.</p>
+                    <p className="text-gray-400 text-sm">Try a different keyword or clear the search box.</p>
+                  </div>
                 ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-6">
-        {products.map((p, idx) => {
+        {filteredProducts.map((p, idx) => {
             const imgs = normalizeImages(p.image)
             const img1 = imgs[0] || PLACEHOLDER_IMAGE
             const img2 = imgs[1] || imgs[0] || PLACEHOLDER_IMAGE
