@@ -1,210 +1,155 @@
-import React, { useEffect, useMemo, useState } from "react"
-import API, { BASE_URL } from "../../api/api"
-import { formatUrl as formatImageUrl, PLACEHOLDER_IMAGE } from "../../utils/formatUrl"
-import { useNavigate, useLocation } from "react-router-dom"
-import { motion } from "framer-motion"
-import { Star } from "lucide-react"
-import useDebounce from "../../hooks/useDebounce"
-import ExpandingSearch from "../../components/ExpandingSearch"
-import CategorySidebar from "../../components/CategorySidebar"
+import React, { useEffect, useMemo, useState } from "react";
+import API from "../../api/api";
+import { formatUrl as formatImageUrl, PLACEHOLDER_IMAGE } from "../../utils/formatUrl";
+import { useLocation, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { ArrowUpRight } from "lucide-react";
+import useDebounce from "../../hooks/useDebounce";
+import ExpandingSearch from "../../components/ExpandingSearch";
+import CategorySidebar from "../../components/CategorySidebar";
 
 export default function ProductList() {
-  const [products, setProducts] = useState([])
-  const [categories, setCategories] = useState([])
-  const [selectedCategory, setSelectedCategory] = useState("")
-  const [search, setSearch] = useState("")
-  const navigate = useNavigate()
-  const location = useLocation()
-  const debouncedSearch = useDebounce(search, 500)
-  
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [search, setSearch] = useState("");
+  const navigate = useNavigate();
+  const location = useLocation();
+  const debouncedSearch = useDebounce(search, 350);
 
-  const fetchProducts = async () => {
-    try {
-      const params = {}
-      if (selectedCategory) params.category = selectedCategory
-      const res = await API.get("/api/products", { params })
-      setProducts(res.data)
-    } catch (err) {
-      console.error("Failed to load products:", err)
-    }
-  }
+  useEffect(() => {
+    API.get("/api/categories")
+      .then((res) => setCategories(res.data || []))
+      .catch((err) => console.error("Failed to load categories:", err));
+  }, []);
+
+  useEffect(() => {
+    const categoryParam = new URLSearchParams(location.search).get("category");
+    setSelectedCategory(categoryParam || "");
+  }, [location.search]);
+
+  useEffect(() => {
+    const params = {};
+    if (selectedCategory) params.category = selectedCategory;
+
+    API.get("/api/products", { params })
+      .then((res) => setProducts(res.data || []))
+      .catch((err) => console.error("Failed to load products:", err));
+  }, [selectedCategory]);
 
   const filteredProducts = useMemo(() => {
-    const q = debouncedSearch.trim().toLowerCase()
-    if (!q) return products
-    return products.filter((p) =>
-      (p.name || "").toLowerCase().includes(q)
-    )
-  }, [products, debouncedSearch])
+    const query = debouncedSearch.trim().toLowerCase();
+    if (!query) return products;
+    return products.filter((product) => (product.name || "").toLowerCase().includes(query));
+  }, [products, debouncedSearch]);
 
-  const fetchCategories = async () => {
-    try {
-      const res = await API.get("/api/categories")
-      setCategories(res.data)
-    } catch (err) {
-      console.error("Failed to load categories:", err)
-    }
-  }
+  const productCountLabel = `${filteredProducts.length} item${filteredProducts.length === 1 ? "" : "s"}`;
 
-  useEffect(() => {
-    fetchCategories()
-  }, [])
-
-  useEffect(() => {
-    fetchProducts()
-  }, [selectedCategory])
-  
-
-  useEffect(() => {
-    const categoryParam = new URLSearchParams(location.search).get("category")
-    const category = categoryParam?.replace(/\s+/g, "").toLowerCase()
-    setSelectedCategory(category)
-  }, [location])
-  
-  const normalizeImages = (image) => {
-    if (!image) return []
-  
-    if (typeof image === "string") return [image]
-  
+  const getImages = (image) => {
+    if (!image) return [];
+    if (typeof image === "string") return [image];
     if (Array.isArray(image)) {
-      return image
-        .map((img) => {
-          if (typeof img === "string") return img
-          if (typeof img === "object" && img.url) return img.url
-          return null
-        })
-        .filter(Boolean)
+      return image.map((entry) => (typeof entry === "object" ? entry?.url : entry)).filter(Boolean);
     }
-    return []
-  }
-  
+    return [];
+  };
+
   const getImageSrc = (url) => {
-    if (!url) return PLACEHOLDER_IMAGE
-    if (url === PLACEHOLDER_IMAGE || !url.startsWith("/img")) return url
-    return formatImageUrl(url) || PLACEHOLDER_IMAGE
-  }
+    if (!url) return PLACEHOLDER_IMAGE;
+    return formatImageUrl(url) || PLACEHOLDER_IMAGE;
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-20 px-6 font-[Poppins]">
-      <h2 className="text-4xl font-semibold mb-12 text-center text-gray-800 mt-15">
-        <span className="text-gray-600">Explore Our </span><span className="text-green-600">Latest Products</span>
-      </h2>
+    <div className="px-4 pb-12 pt-28 sm:px-6 sm:pt-32">
+      <div className="section-shell">
+        <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+          <CategorySidebar
+            categories={categories}
+            selectedCategory={selectedCategory}
+            onSelectCategory={setSelectedCategory}
+          />
 
-      <div className="max-w-[1350px] mx-auto">
-        <div className="flex flex-col md:flex-row gap-8">
-            <CategorySidebar 
-                categories={categories} 
-                selectedCategory={selectedCategory} 
-                onSelectCategory={setSelectedCategory} 
-            />
+          <div>
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.26em] text-slate-400">Catalog</p>
+                <h2 className="mt-1 text-3xl text-slate-900">{selectedCategory || "All Products"}</h2>
+                <p className="mt-2 text-sm text-slate-500">{productCountLabel}</p>
+              </div>
+              <ExpandingSearch search={search} setSearch={setSearch} />
+            </div>
 
-            <div className="flex-1">
-                <div className="flex justify-end mb-6">
-                    <ExpandingSearch search={search} setSearch={setSearch} />
-                </div>
-
-                {products.length === 0 ? (
-                  <div className="text-center py-20">
-                    <p className="text-gray-500 text-lg mb-4">No products found.</p>
-                    <p className="text-gray-400 text-sm">Products will appear here once they are added to the store.</p>
-                  </div>
-                ) : filteredProducts.length === 0 ? (
-                  <div className="text-center py-20">
-                    <p className="text-gray-500 text-lg mb-4">No products match your search.</p>
-                    <p className="text-gray-400 text-sm">Try a different keyword or clear the search box.</p>
-                  </div>
-                ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-6">
-        {filteredProducts.map((p, idx) => {
-            const imgs = normalizeImages(p.image)
-            const img1 = imgs[0] || PLACEHOLDER_IMAGE
-            const img2 = imgs[1] || imgs[0] || PLACEHOLDER_IMAGE
-
-          return (
-            <motion.div
-              key={p.id}
-              onClick={() => navigate(`/products/${p.id}`)}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.05, type: "spring", stiffness: 80 }}
-              whileHover={{ scale: 1.03 }}
-              className="bg-white border border-gray-200 overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition duration-300 flex flex-col h-full"
-
-            >
-              <div className="relative group flex-shrink-0">
-                <div className="relative w-full h-56 flex items-center justify-center p-6">
-                {(() => {
-                  const imgSrc1 = getImageSrc(img1)
-                  const imgSrc2 = getImageSrc(img2) || imgSrc1
+            {filteredProducts.length === 0 ? (
+              <div className="glass-panel rounded-[32px] border border-white/70 px-8 py-16 text-center">
+                <h3 className="text-3xl text-slate-900">Nothing matched this view.</h3>
+                <p className="mt-3 text-sm leading-7 text-slate-500">Try another search term or switch categories to reveal more products.</p>
+              </div>
+            ) : (
+              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                {filteredProducts.map((product, index) => {
+                  const images = getImages(product.image);
+                  const primaryImage = getImageSrc(images[0]);
+                  const secondaryImage = getImageSrc(images[1] || images[0]);
 
                   return (
-                    <>
-                      <img
-                        src={imgSrc1}
-                        alt={p.name}
-                        onError={(e) => { e.target.onerror = null; e.target.src = PLACEHOLDER_IMAGE; }}
-                        className="
-                          absolute inset-0 m-auto w-full h-[400px] bg-[#f7f7f7] object-contain transition-all duration-500 opacity-100 group-hover:opacity-0 scale-100 group-hover:scale-95 mt-0.5"
-                      />
-                      <img
-                        src={imgSrc2}
-                        alt={p.name + '-alt'}
-                        onError={(e) => { e.target.onerror = null; e.target.src = PLACEHOLDER_IMAGE; }}
-                        className="
-                          absolute inset-0 m-auto w-full h-full object-contain transition-all duration-500 opacity-0 group-hover:opacity-100 scale-105 group-hover:scale-100 mt-8"
-                      />
-                    </>
-                  )
-                })()}
+                    <motion.button
+                      key={product.id}
+                      initial={{ opacity: 0, y: 18 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.04 }}
+                      onClick={() => navigate(`/products/${product.id}`)}
+                      className="glass-panel group overflow-hidden rounded-[32px] border border-white/70 text-left"
+                    >
+                      <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-white via-amber-50 to-teal-50">
+                        <img
+                          src={primaryImage}
+                          alt={product.name}
+                          onError={(event) => {
+                            event.currentTarget.onerror = null;
+                            event.currentTarget.src = PLACEHOLDER_IMAGE;
+                          }}
+                          className="absolute inset-0 h-full w-full object-contain p-6 transition duration-500 group-hover:scale-95 group-hover:opacity-0"
+                        />
+                        <img
+                          src={secondaryImage}
+                          alt={`${product.name} alternate`}
+                          onError={(event) => {
+                            event.currentTarget.onerror = null;
+                            event.currentTarget.src = PLACEHOLDER_IMAGE;
+                          }}
+                          className="absolute inset-0 h-full w-full object-contain p-6 opacity-0 transition duration-500 group-hover:scale-105 group-hover:opacity-100"
+                        />
+                      </div>
 
-                </div>
+                      <div className="p-5">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-xs font-bold uppercase tracking-[0.26em] text-slate-400">
+                            {selectedCategory || product.category || "Store pick"}
+                          </p>
+                          <ArrowUpRight className="text-slate-400 transition group-hover:text-teal-700" size={17} />
+                        </div>
+                        <h3 className="mt-3 line-clamp-2 text-2xl text-slate-900">{product.name}</h3>
+                        <p className="mt-3 text-sm leading-7 text-slate-500">
+                          {(product.description || "Thoughtfully presented product details for faster buying decisions.").slice(0, 92)}
+                          {(product.description || "").length > 92 ? "..." : ""}
+                        </p>
+                        <div className="mt-6 flex items-center justify-between">
+                          <span className="text-lg font-extrabold text-teal-700">
+                            NPR {Number(product.price || 0).toFixed(2)}
+                          </span>
+                          <span className="rounded-full bg-slate-950 px-4 py-2 text-xs font-bold uppercase tracking-[0.24em] text-white">
+                            Open
+                          </span>
+                        </div>
+                      </div>
+                    </motion.button>
+                  );
+                })}
               </div>
-
-              <div className="p-7 flex flex-col flex-grow relative z-10">
-                <h3 className="text-sm text-gray-600 mt-4 uppercase break-words">
-                  {p.name}
-                </h3>
-
-                <div className="flex items-center mt-3 mb-2">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      size={16}
-                      className={`${
-                        i < 4
-                          ? "text-yellow-500 fill-yellow-500"
-                          : "text-gray-300"
-                      }`}
-                    />
-                  ))}
-                </div>
-
-                <div className="flex justify-between items-center mt-auto pt-4 relative z-20">
-                  <p className="text-gray-600 text-sm font-medium">   
-                  NPR {new Intl.NumberFormat("en-IN", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2
-                    }).format(p.price)}
-                  </p>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      navigate(`/products/${p.id}`)
-                    }}
-                    className="bg-gray-600 text-white px-4 py-1 rounded-full text-sm font-medium hover:bg-gray-500 transition cursor-pointer"
-                  >
-                    View
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          )
-        })}
-      </div>
-                )}
+            )}
+          </div>
         </div>
       </div>
     </div>
-    </div>
-  )
+  );
 }

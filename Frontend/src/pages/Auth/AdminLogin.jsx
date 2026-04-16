@@ -1,7 +1,8 @@
 import React, { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useDispatch, useSelector } from "react-redux"
-import { login } from "../../store/slices/authSlice"
+import { login, setAuth } from "../../store/slices/authSlice"
+import API from "../../api/api"
 
 export default function AdminLogin() {
   const dispatch = useDispatch()
@@ -27,9 +28,21 @@ export default function AdminLogin() {
 
       if (result.isDummy) {
         if (result.isAdminDemo) {
-          localStorage.setItem("pendingEmail", emailOrPhone);
-          localStorage.setItem("adminLogin", "true");
-          return navigate("/verify-otp");
+          const finalUser = { email: emailOrPhone, role: "admin", demo: true }
+          const demoToken = "DUMMY_TOKEN_ADMIN"
+
+          localStorage.setItem("token", demoToken)
+          localStorage.setItem("user", JSON.stringify(finalUser))
+          localStorage.setItem("role", "admin")
+          localStorage.removeItem("pendingEmail")
+          localStorage.removeItem("dummyOtp")
+          localStorage.removeItem("isDummy")
+          localStorage.removeItem("adminLogin")
+
+          API.defaults.headers.common["Authorization"] = `Bearer ${demoToken}`
+          dispatch(setAuth({ user: finalUser, token: demoToken }))
+
+          return navigate("/admin/dashboard")
         }
         setMessage("Demo user credentials only. Use admin@example.com / admin123 for demo admin.")
         return;
@@ -85,10 +98,10 @@ export default function AdminLogin() {
               Enter your admin credentials
             </p>
             <span className="inline-block text-xs px-2 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 mb-2">
-              Two-step verification enabled
+              Demo admin logs in directly
             </span>
             <div className="mb-4 p-2.5 rounded-md bg-amber-500/20 border border-amber-400/30 text-amber-200 text-xs">
-              <strong>Demo Admin:</strong> {ADMIN_EMAIL} / {ADMIN_PASSWORD} (OTP: 222222)
+              <strong>Demo Admin:</strong> {ADMIN_EMAIL} / {ADMIN_PASSWORD}
             </div>
           </div>
 

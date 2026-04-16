@@ -12,6 +12,8 @@ export const formatUrl = (url) => {
   if (!url) return null;
 
   if (url.startsWith("http")) return url;
+  if (url.startsWith("blob:") || url.startsWith("data:")) return url;
+  if (!BASE_URL) return url;
   const base = BASE_URL.replace(/\/$/, "");
   const path = url.startsWith("/") ? url : "/" + url;
   try {

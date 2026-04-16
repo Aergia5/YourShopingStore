@@ -1,158 +1,108 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { Facebook, Instagram, Mail, MapPin, Phone, Send, ShoppingBag } from "lucide-react";
+
+const sections = [
+  {
+    title: "Shop",
+    links: [
+      { text: "All Products", path: "/products" },
+      { text: "Fresh Picks", path: "/products?category=Fruits" },
+      { text: "Home Essentials", path: "/products?category=Groceries" },
+      { text: "Tech Finds", path: "/products?category=Electronics" },
+    ],
+  },
+  {
+    title: "Account",
+    links: [
+      { text: "My Orders", path: "/orders" },
+      { text: "Profile", path: "/profile" },
+      { text: "Cart", path: "/cart" },
+      { text: "Admin", path: "/admin/login" },
+    ],
+  },
+];
+
+const socialLinks = [
+  { href: "https://facebook.com", icon: Facebook, label: "Facebook" },
+  { href: "https://instagram.com", icon: Instagram, label: "Instagram" },
+  { href: "https://twitter.com", icon: Send, label: "X" },
+];
 
 const Footer = () => {
-  const linkSections = [
-    {
-      title: "PRODUCTS",
-      links: [
-        { text: "Fruits", path: "/products?category=fruits" },
-        { text: "Vegetables", path: "/products?category=vegetables" },
-        { text: "Electronics", path: "/products?category=electronics" },
-        { text: "Watches", path: "/products?category=watches" },
-        { text: "Clothing", path: "/products?category=clothing" },
-        { text: "Groceries", path: "/products?category=groceries" },
-        { text: "Stationery", path: "/products?category=stationery" },
-        { text: "Personal Care", path: "/products?category=Personal%20Care" },
-      ],
-    },
-    {
-      title: "WEBSITE",
-      links: [
-        { text: "Home", path: "/" },
-
-      ],
-    },
-    {
-      title: "CONTACT",
-      links: [
-        { text: "+977 9876543210", path: "/" },
-        { text: "contact@shoppingstore.com", path: "/" },
-        { text: "Kathmandu, Nepal", path: "/" },
-      ],
-    },
-  ];
-
-  const socialIcons = [
-    {
-      icon: (
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M14.9987 1.66699H12.4987C11.3936 1.66699 10.3338 2.10598 9.55242 2.88738C8.77102 3.66878 8.33203 4.72859 8.33203 5.83366V8.33366H5.83203V11.667H8.33203V18.3337H11.6654V11.667H14.1654L14.9987 8.33366H11.6654V5.83366C11.6654 5.61265 11.7532 5.40068 11.9094 5.2444C12.0657 5.08812 12.2777 5.00033 12.4987 5.00033H14.9987V1.66699Z"
-            stroke="#90A1B9"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      ),
-      link: "https://facebook.com",
-    },
-    {
-      icon: (
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M14.5846 5.41699H14.593M5.83464 1.66699H14.168C16.4692 1.66699 18.3346 3.53247 18.3346 5.83366V14.167C18.3346 16.4682 16.4692 18.3337 14.168 18.3337H5.83464C3.53345 18.3337 1.66797 16.4682 1.66797 14.167V5.83366C1.66797 3.53247 3.53345 1.66699 5.83464 1.66699ZM13.3346 9.47533C13.4375 10.1689 13.319 10.8772 12.9961 11.4995C12.6732 12.1218 12.1623 12.6265 11.536 12.9417C10.9097 13.2569 10.2 13.3667 9.50779 13.2553C8.81557 13.1439 8.1761 12.8171 7.68033 12.3213C7.18457 11.8255 6.85775 11.1861 6.74636 10.4938C6.63497 9.80162 6.74469 9.0919 7.05991 8.46564C7.37512 7.83937 7.87979 7.32844 8.50212 7.00553C9.12445 6.68261 9.83276 6.56415 10.5263 6.66699C11.2337 6.7719 11.8887 7.10154 12.3944 7.60725C12.9001 8.11295 13.2297 8.76789 13.3346 9.47533Z"
-            stroke="#90A1B9"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      ),
-      link: "https://instagram.com",
-    },
-    {
-      icon: (
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M18.3346 3.33368C18.3346 3.33368 17.7513 5.08368 16.668 6.16701C18.0013 14.5003 8.83464 20.5837 1.66797 15.8337C3.5013 15.917 5.33464 15.3337 6.66797 14.167C2.5013 12.917 0.417969 8.00034 2.5013 4.16701C4.33464 6.33368 7.16797 7.58368 10.0013 7.50034C9.2513 4.00034 13.3346 2.00034 15.8346 4.33368C16.7513 4.33368 18.3346 3.33368 18.3346 3.33368Z"
-            stroke="#90A1B9"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      ),
-      link: "https://twitter.com",
-    },
-  ];
-
   return (
-    <footer className="bg-white mt-10">
-      <div className="max-w-7xl mx-auto px-6 py-10 border-t border-gray-200 text-gray-600">
-        <div className="flex flex-col md:flex-row justify-between items-start gap-10">
-          {/* Brand + description */}
+    <footer className="relative mt-16 overflow-hidden px-4 pb-8 pt-14 sm:px-6">
+      <div className="section-shell glass-panel rounded-[36px] border border-white/70 px-6 py-10 sm:px-10">
+        <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr_0.8fr_0.9fr]">
           <div>
-            <Link to="/" className="text-4xl font-bold text-gray-600">
-              Your<span className="text-green-600">Store</span>
-            </Link>
-            <p className="mt-4 max-w-xs text-sm leading-relaxed">
-              Discover the best deals on electronics, groceries, and lifestyle
-              essentials — all in one place.
+            <div className="mb-5 flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-white shadow-lg">
+                <ShoppingBag size={20} />
+              </div>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.28em] text-teal-700">
+                  Designed for everyday delight
+                </p>
+                <h2 className="text-3xl text-slate-900">YourShopingStore</h2>
+              </div>
+            </div>
+            <p className="max-w-md text-sm leading-7 text-slate-600 sm:text-base">
+              A calmer, cleaner shopping experience for daily essentials, fresh finds, and modern lifestyle picks. Browse faster, discover more clearly, and check out with confidence.
             </p>
-            <div className="flex items-center gap-3 mt-5">
-              {socialIcons.map((item, i) => (
+            <div className="mt-6 flex items-center gap-3">
+              {socialLinks.map(({ href, icon: Icon, label }) => (
                 <a
-                  key={i}
-                  href={item.link}
+                  key={label}
+                  href={href}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center justify-center w-10 h-10 bg-gray-600 hover:bg-gray-500 rounded-full hover:scale-105 transition-transform"
+                  aria-label={label}
+                  className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:-translate-y-0.5 hover:border-teal-300 hover:text-teal-700"
                 >
-                  {item.icon}
+                  <Icon size={18} />
                 </a>
               ))}
             </div>
           </div>
 
-          {/* Quick links */}
-          <div className="flex flex-wrap gap-8 md:gap-16">
-            {linkSections.map((section, index) => (
-              <div key={index}>
-                <h3 className="font-semibold mb-3 bg-gradient-to-r from-green-400 to-blue-600 bg-clip-text text-transparent">
-                  {section.title}
-                </h3>
+          {sections.map((section) => (
+            <div key={section.title}>
+              <h3 className="mb-4 text-lg text-slate-900">{section.title}</h3>
+              <ul className="space-y-3 text-sm text-slate-600">
+                {section.links.map((link) => (
+                  <li key={link.text}>
+                    <Link className="transition hover:text-teal-700" to={link.path}>
+                      {link.text}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
 
-                <ul className="space-y-2 text-sm">
-                  {section.links.map((link, i) => (
-                    <li key={i}>
-                      <Link
-                        to={link.path}
-                        className="hover:underline hover:text-green-600 transition-colors"
-                      >
-                        {link.text}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+          <div>
+            <h3 className="mb-4 text-lg text-slate-900">Visit or Contact</h3>
+            <div className="space-y-4 text-sm text-slate-600">
+              <div className="flex items-start gap-3">
+                <MapPin className="mt-0.5 text-teal-700" size={18} />
+                <span>Kathmandu, Nepal</span>
               </div>
-            ))}
+              <div className="flex items-start gap-3">
+                <Phone className="mt-0.5 text-teal-700" size={18} />
+                <span>+977 9876543210</span>
+              </div>
+              <div className="flex items-start gap-3">
+                <Mail className="mt-0.5 text-teal-700" size={18} />
+                <span>contact@shoppingstore.com</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <p className="text-sm text-center text-gray-600 mt-10 border-t pt-6">
-          © {new Date().getFullYear()} Your Own Shopping Store — All rights
-          reserved.
-        </p>
+        <div className="mt-10 flex flex-col gap-3 border-t border-slate-200 pt-6 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+          <p>� {new Date().getFullYear()} YourShopingStore. Built for smoother browsing and better buying.</p>
+          <p>Fast discovery. Clear pricing. Comfortable checkout.</p>
+        </div>
       </div>
     </footer>
   );

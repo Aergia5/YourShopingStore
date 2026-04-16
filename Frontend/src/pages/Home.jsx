@@ -1,247 +1,177 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { ArrowRight, ShieldCheck, Sparkles, Truck } from "lucide-react";
 import API from "../api/api";
 import { formatUrl, PLACEHOLDER_IMAGE } from "../utils/formatUrl";
-import AnimatedCategoryButton from "../components/AnimatedCategoryButton";
+
+const categoryHighlights = [
+  {
+    label: "Fresh Produce",
+    category: "Fruits",
+    image:
+      "https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&w=900&q=80",
+    blurb: "Handpicked fruits and kitchen staples with clean visuals and fast discovery.",
+  },
+  {
+    label: "Everyday Tech",
+    category: "Electronics",
+    image:
+      "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=900&q=80",
+    blurb: "Reliable gadgets, smarter comparisons, and product details that are easier to scan.",
+  },
+  {
+    label: "Home & Care",
+    category: "Personal Care",
+    image:
+      "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=900&q=80",
+    blurb: "Daily essentials presented in a calmer, more thoughtful storefront experience.",
+  },
+];
+
+const trustPoints = [
+  { icon: Truck, title: "Fast dispatch", text: "Clear product browsing and fewer steps between discovery and checkout." },
+  { icon: ShieldCheck, title: "Safer checkout", text: "Simple payment choices, clear totals, and cleaner order flow." },
+  { icon: Sparkles, title: "Better discovery", text: "A more intentional UI that helps customers find products faster." },
+];
 
 export default function Home() {
   const navigate = useNavigate();
   const [featured, setFeatured] = useState([]);
 
-  const handleCategoryClick = (cat) => {
-    navigate(`/products?category=${encodeURIComponent(cat)}`);
-  };
-
   useEffect(() => {
-    API
-      .get("/api/products")
-      .then((res) => setFeatured((res.data || []).slice(0, 6)))
+    API.get("/api/products")
+      .then((res) => setFeatured((res.data || []).slice(0, 8)))
       .catch((err) => console.error("Failed to load featured products:", err));
   }, []);
 
-  return (
-    <div className="min-h-screen flex flex-col">
-      {/* Hero Banner */}
-      <section className="relative w-full min-h-[70vh] flex flex-col items-center justify-center text-center text-white overflow-hidden">
-        <video
-          src="https://res.cloudinary.com/djm65usjg/video/upload/v1762694530/shopping_xns41y.webm"
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/60" />
-        <div className="absolute inset-0 bg-black/40" />
+  const featuredCards = useMemo(
+    () =>
+      featured.map((product) => {
+        const rawImage = Array.isArray(product.image) ? product.image[0]?.url || product.image[0] : product.image;
+        return {
+          ...product,
+          imageSrc: rawImage ? formatUrl(rawImage) || PLACEHOLDER_IMAGE : PLACEHOLDER_IMAGE,
+        };
+      }),
+    [featured]
+  );
 
-        <motion.div
-          className="relative z-10 px-6 max-w-4xl"
-          initial={{ opacity: 0, y: -40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-        >
-          <h1 className="text-4xl sm:text-6xl font-extrabold mb-6">
-            Welcome to Your Own Shopping Store
-          </h1>
-          <motion.p
-            className="text-lg sm:text-xl mb-10"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4, duration: 1 }}
-          >
-            Explore the best deals and shop across your favorite categories — all in one place.
-          </motion.p>
-          <motion.button
-            onClick={() => navigate("/products")}
-            whileHover={{ scale: 1.05 }}
-            className="relative inline-block px-10 py-3 font-semibold text-black rounded-md bg-white/80 backdrop-blur-md border border-white/30 overflow-hidden transition-all duration-300 group cursor-pointer"
-          >
-            <span className="relative z-10">Start Shopping</span>
-            <span className="absolute inset-0 border-2 border-transparent group-hover:border-white rounded-md transition-all duration-300" />
-            <span className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-all duration-300" />
-          </motion.button>
-        </motion.div>
+  return (
+    <div className="pb-10 pt-24 sm:pt-28">
+      <section className="section-shell relative overflow-hidden rounded-[40px] bg-slate-950 px-6 py-14 text-white shadow-2xl sm:px-10 lg:px-14 lg:py-18">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(251,191,36,0.26),_transparent_28%),radial-gradient(circle_at_bottom_right,_rgba(45,212,191,0.22),_transparent_30%)]" />
+        <div className="absolute inset-y-0 right-0 hidden w-[42%] bg-[url('https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=1200&q=80')] bg-cover bg-center opacity-35 lg:block" />
+
+        <div className="relative z-10 grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
+          <div className="max-w-2xl">
+            <p className="mb-4 inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.32em] text-amber-200">
+              Recreated with better UI and UX
+            </p>
+            <h1 className="text-balance text-5xl leading-tight sm:text-6xl lg:text-7xl">
+              Shop daily essentials in a storefront that feels premium and effortless.
+            </h1>
+            <p className="mt-6 max-w-xl text-base leading-8 text-white/78 sm:text-lg">
+              Your original shopping experience now has stronger hierarchy, smoother navigation, clearer product cards, and a checkout flow that feels more trustworthy from first click to final payment.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <button
+                onClick={() => navigate("/products")}
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-bold text-slate-950 transition hover:-translate-y-0.5 hover:bg-amber-100"
+              >
+                Explore products
+                <ArrowRight size={18} />
+              </button>
+              <button
+                onClick={() => navigate("/register")}
+                className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/8 px-6 py-3.5 text-sm font-bold text-white transition hover:bg-white/14"
+              >
+                Create your account
+              </button>
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
+            {trustPoints.map(({ icon: Icon, title, text }) => (
+              <div key={title} className="rounded-[28px] border border-white/12 bg-white/10 p-5 backdrop-blur-md">
+                <Icon className="mb-4 text-amber-300" size={22} />
+                <h2 className="text-2xl text-white">{title}</h2>
+                <p className="mt-2 text-sm leading-7 text-white/70">{text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
 
-      {/* Featured Products */}
-      {featured.length > 0 && (
-        <section className="py-16 px-4 md:px-8 bg-gray-50">
-          <h2 className="text-3xl font-bold text-center mb-10 text-gray-800">
-            Featured Products
-          </h2>
-          <div className="max-w-6xl mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-            {featured.map((p) => {
-              const img = Array.isArray(p.image) && p.image[0]?.url
-                ? p.image[0].url
-                : typeof p.image === "string"
-                ? p.image
-                : null;
-              const imgSrc = !img
-                ? PLACEHOLDER_IMAGE
-                : img.startsWith("http")
-                ? img
-                : img.startsWith("/img")
-                ? (formatUrl(img) || PLACEHOLDER_IMAGE)
-                : img;
-              return (
-                <motion.div
-                  key={p.id}
-                  whileHover={{ scale: 1.05 }}
-                  className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow cursor-pointer"
-                  onClick={() => navigate(`/products/${p.id}`)}
-                >
-                  <div className="aspect-square p-4 flex items-center justify-center bg-gray-100">
-                    <img
-                      src={imgSrc}
-                      alt={p.name}
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                  <div className="p-3 text-center">
-                    <h3 className="font-semibold text-gray-800 text-sm truncate">{p.name}</h3>
-                    <p className="text-green-600 font-bold text-sm">NPR {p.price?.toFixed(2)}</p>
-                  </div>
-                </motion.div>
-              );
-            })}
+      <section className="section-shell mt-8 grid gap-4 lg:grid-cols-3">
+        {categoryHighlights.map((item, index) => (
+          <motion.button
+            key={item.category}
+            whileHover={{ y: -6 }}
+            whileTap={{ scale: 0.99 }}
+            transition={{ duration: 0.22 }}
+            onClick={() => navigate(`/products?category=${encodeURIComponent(item.category)}`)}
+            className={`group relative overflow-hidden rounded-[32px] p-8 text-left text-white shadow-xl ${index === 1 ? "lg:translate-y-8" : ""}`}
+          >
+            <img src={item.image} alt={item.label} className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/35 to-transparent" />
+            <div className="relative z-10 flex h-full min-h-[260px] flex-col justify-end">
+              <p className="text-xs font-bold uppercase tracking-[0.3em] text-amber-200">{item.category}</p>
+              <h2 className="mt-3 text-4xl text-balance">{item.label}</h2>
+              <p className="mt-3 max-w-xs text-sm leading-7 text-white/78">{item.blurb}</p>
+            </div>
+          </motion.button>
+        ))}
+      </section>
+
+      <section className="section-shell mt-16">
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.28em] text-teal-700">Featured right now</p>
+            <h2 className="mt-2 text-4xl text-slate-900 sm:text-5xl">Products worth opening first</h2>
           </div>
-        </section>
-      )}
+          <button
+            onClick={() => navigate("/products")}
+            className="inline-flex items-center gap-2 self-start rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:border-teal-300 hover:text-teal-700"
+          >
+            See full catalog
+            <ArrowRight size={17} />
+          </button>
+        </div>
 
-      {/* Category Shortcuts */}
-      <section className="py-20 px-4 md:px-8 bg-white">
-        <h2 className="text-4xl font-bold text-center mb-12 text-gray-600">
-          Shop by Category
-        </h2>
-
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col md:flex-row w-full gap-4">
-            <div
-              className="relative group overflow-hidden rounded-2xl h-[220px] sm:h-[300px] md:h-[400px] md:w-1/3 w-full cursor-pointer"
-              onClick={() => handleCategoryClick("Fruits")}
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          {featuredCards.map((product, index) => (
+            <motion.button
+              key={product.id}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.06 }}
+              onClick={() => navigate(`/products/${product.id}`)}
+              className="glass-panel group overflow-hidden rounded-[30px] border border-white/70 text-left"
             >
-              <video
-                src="https://res.cloudinary.com/djm65usjg/video/upload/v1763271190/fruits3_b6ibmc.mp4"
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="auto"
-                className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110"
-              />
-              <AnimatedCategoryButton
-                label="Fruits"
-                onClick={() => handleCategoryClick("Fruits")}
-                className="absolute bottom-20 left-1/4 -translate-x-1/2"
-              />
-            </div>
-
-            <div
-              className="relative group overflow-hidden rounded-2xl h-[220px] sm:h-[300px] md:h-[400px] md:w-2/3 w-full cursor-pointer"
-              onClick={() => handleCategoryClick("Vegetables")}
-            >
-              <video
-                src="https://res.cloudinary.com/djm65usjg/video/upload/v1762694530/vegetables_mpgm2n.webm"
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="auto"
-                className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110"
-              />
-              <AnimatedCategoryButton
-                label="Vegetables"
-                onClick={() => handleCategoryClick("Vegetables")}
-                className="absolute bottom-20 left-1/4 -translate-x-1/2"
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col md:flex-row w-full gap-4">
-            <div
-              className="relative group overflow-hidden rounded-2xl h-[220px] sm:h-[300px] md:h-[400px] md:w-2/3 w-full cursor-pointer"
-              onClick={() => handleCategoryClick("Electronics")}
-            >
-              <video
-                src="https://res.cloudinary.com/djm65usjg/video/upload/v1762694529/electronics_c6e7ij.webm"
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="auto"
-                className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110"
-              />
-              <AnimatedCategoryButton
-                label="Electronics"
-                onClick={() => handleCategoryClick("Electronics")}
-                className="absolute bottom-20 left-1/4 -translate-x-1/2"
-              />
-            </div>
-
-            <div
-              className="relative group overflow-hidden rounded-2xl h-[220px] sm:h-[300px] md:h-[400px] md:w-1/3 w-full cursor-pointer"
-              onClick={() => handleCategoryClick("Watches")}
-            >
-              <video
-                src="https://res.cloudinary.com/djm65usjg/video/upload/v1762694531/watches_qnqtfb.webm"
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="auto"
-                className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110"
-              />
-              <AnimatedCategoryButton
-                label="Watches"
-                onClick={() => handleCategoryClick("Watches")}
-                className="absolute bottom-20 left-1/4 -translate-x-1/2"
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col md:flex-row w-full gap-4">
-            <div
-              className="relative group overflow-hidden rounded-2xl h-[220px] sm:h-[300px] md:h-[400px] md:w-1/3 w-full cursor-pointer"
-              onClick={() => handleCategoryClick("Groceries")}
-            >
-              <video
-                src="https://res.cloudinary.com/djm65usjg/video/upload/v1762694529/grocery_bdgt9e.webm"
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="auto"
-                className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110"
-              />
-              <AnimatedCategoryButton
-                label="Groceries"
-                onClick={() => handleCategoryClick("Groceries")}
-                className="absolute bottom-20 left-1/4 -translate-x-1/2"
-              />
-            </div>
-
-            <div
-              className="relative group overflow-hidden rounded-2xl h-[220px] sm:h-[300px] md:h-[400px] md:w-2/3 w-full cursor-pointer"
-              onClick={() => handleCategoryClick("Personal Care")}
-            >
-              <video
-                src="https://res.cloudinary.com/djm65usjg/video/upload/v1762694529/personalCare_sou9n6.webm"
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="auto"
-                className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110"
-              />
-              <AnimatedCategoryButton
-                label="Personal Care"
-                onClick={() => handleCategoryClick("Personal Care")}
-                className="absolute bottom-20 left-1/4 -translate-x-1/2"
-              />
-            </div>
-          </div>
+              <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-amber-50 via-white to-teal-50">
+                <img
+                  src={product.imageSrc}
+                  alt={product.name}
+                  onError={(event) => {
+                    event.currentTarget.onerror = null;
+                    event.currentTarget.src = PLACEHOLDER_IMAGE;
+                  }}
+                  className="h-full w-full object-contain p-6 transition duration-500 group-hover:scale-105"
+                />
+              </div>
+              <div className="p-5">
+                <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-400">Featured pick</p>
+                <h3 className="mt-3 line-clamp-2 text-2xl text-slate-900">{product.name}</h3>
+                <div className="mt-5 flex items-center justify-between">
+                  <p className="text-lg font-extrabold text-teal-700">NPR {Number(product.price || 0).toFixed(2)}</p>
+                  <span className="rounded-full bg-slate-950 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.22em] text-white">
+                    View
+                  </span>
+                </div>
+              </div>
+            </motion.button>
+          ))}
         </div>
       </section>
     </div>
