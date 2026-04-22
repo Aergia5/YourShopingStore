@@ -20,8 +20,8 @@ export default function Signup() {
     try {
       const res = await signup(email, phone, password, role);
       if (res?.requiresVerification) {
-        localStorage.setItem("pendingEmail", res.email);
-        setMessage("Check your email for verification code!");
+        localStorage.setItem("pendingEmail", res.emailOrPhone || phone);
+        setMessage("Check your phone for verification code!");
         setTimeout(() => navigate("/verify-otp"), 1500);
       } else {
         setMessage("Signup successful! Redirecting to login...");
@@ -67,7 +67,7 @@ export default function Signup() {
                 Enter your details below
               </p>
               <span className="inline-block text-xs px-2 py-1 rounded bg-green-500/20 text-green-300 border border-green-500/30 mb-4">
-                Two-step verification (email OTP)
+                Two-step verification (SMS OTP)
               </span>
             </div>
   

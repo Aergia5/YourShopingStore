@@ -19,39 +19,77 @@ function generateOtp() {
 export const register = async (req, res) => {
   try {
     const { email, phone, password, role } = req.body;
-    if (!email || !password || !phone) {
+    const normalizedEmail = email?.trim().toLowerCase();
+    const normalizedPhone = phone?.trim();
+    if (!normalizedEmail || !password || !normalizedPhone) {
       return res.status(400).json({ message: "Email, phone & password are required" });
     }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(normalizedEmail)) {
+      return res.status(400).json({ message: "Please enter a valid email address" });
+    }
     const existing = await User.findOne({
-      $or: [{ email }, { phone }]
+      $or: [{ email: normalizedEmail }, { phone: normalizedPhone }]
     });
     if (existing) {
       return res.status(409).json({ message: "User already exists with this email or phone" });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({
-      email,
-      phone,
+      email: normalizedEmail,
+      phone: normalizedPhone,
       password: hashedPassword,
       role: role === "admin" ? "admin" : "user",
     });
-    // Two-step verification: send OTP to verify email
-    const otp = generateOtp();
-    newUser.otp = otp;
-    newUser.otpExpiry = new Date(Date.now() + 5 * 60 * 1000);
+    // Two-step verification: send OTP to verify phone
+    const sessionId = await sendSMS(normalizedPhone);
+    if (!sessionId) {
+      return res.status(500).json({ message: "Failed to send OTP via SMS" });
+    }
+
+    newUser.otpSessionId = sessionId;
+    newUser.otp = null;
+    newUser.otpExpiry = null;
     await newUser.save();
-    await sendMail({
-      to: newUser.email,
-      subject: "Verify your email - Your Shopping Store",
-      htmlContent: otpTemplate(otp),
-    });
+
     res.status(201).json({
-      message: "Check your email for verification code",
+      message: "Check your phone for verification code",
       requiresVerification: true,
-      email: newUser.email,
+      emailOrPhone: newUser.phone,
     });
   } catch (err) {
     console.error("Register error:", err);
+    const brevoCode = err?.response?.data?.code;
+    const brevoAuthError =
+      err?.message?.includes("BREVO_SECRET is missing or invalid") ||
+      brevoCode === "unauthorized";
+    if (brevoAuthError) {
+      return res.status(500).json({
+        message:
+          "Email service is not configured. Please set a valid BREVO_SECRET in backend .env",
+      });
+    }
+    if (brevoCode === "permission_denied") {
+      return res.status(503).json({
+        message:
+          "Email sending is blocked by Brevo: SMTP/Transactional email is not activated for this account yet. Activate it in Brevo (or contact Brevo support), then try again.",
+      });
+    }
+    if (err?.message?.includes("SMTP is not configured")) {
+      return res.status(503).json({
+        message:
+          "Email is not configured. Set SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS (recommended) or a valid BREVO_SECRET, then restart the backend.",
+      });
+    }
+    if (err?.code === "EAUTH" || err?.responseCode === 535) {
+      return res.status(503).json({
+        message:
+          "SMTP login failed (Gmail rejected the username/app-password). Verify SMTP_USER matches the Gmail account that generated the App Password, then set SMTP_PASS to the current App Password and restart backend.",
+      });
+    }
+    if (err?.code === "ERR_BAD_REQUEST") {
+      return res.status(500).json({ message: "Failed to send OTP via SMS" });
+    }
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -107,6 +145,25 @@ export const login = async (req, res) => {
     res.json({ otpRequired: true, message: "OTP sent to email" });
   } catch (err) {
     console.error("Login error:", err);
+    const brevoCode = err?.response?.data?.code;
+    if (brevoCode === "permission_denied") {
+      return res.status(503).json({
+        message:
+          "Email sending is blocked by Brevo: SMTP/Transactional email is not activated for this account yet. Activate it in Brevo (or contact Brevo support), then try again.",
+      });
+    }
+    if (err?.message?.includes("SMTP is not configured")) {
+      return res.status(503).json({
+        message:
+          "Email is not configured. Set SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS (recommended) or a valid BREVO_SECRET, then restart the backend.",
+      });
+    }
+    if (err?.code === "EAUTH" || err?.responseCode === 535) {
+      return res.status(503).json({
+        message:
+          "SMTP login failed (Gmail rejected the username/app-password). Verify SMTP_USER matches the Gmail account that generated the App Password, then set SMTP_PASS to the current App Password and restart backend.",
+      });
+    }
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -184,6 +241,25 @@ export const resendOtp = async (req, res) => {
     res.json({ message: "OTP resent to email" });
   } catch (err) {
     console.error("Resend OTP error:", err);
+    const brevoCode = err?.response?.data?.code;
+    if (brevoCode === "permission_denied") {
+      return res.status(503).json({
+        message:
+          "Email sending is blocked by Brevo: SMTP/Transactional email is not activated for this account yet. Activate it in Brevo (or contact Brevo support), then try again.",
+      });
+    }
+    if (err?.message?.includes("SMTP is not configured")) {
+      return res.status(503).json({
+        message:
+          "Email is not configured. Set SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS (recommended) or a valid BREVO_SECRET, then restart the backend.",
+      });
+    }
+    if (err?.code === "EAUTH" || err?.responseCode === 535) {
+      return res.status(503).json({
+        message:
+          "SMTP login failed (Gmail rejected the username/app-password). Verify SMTP_USER matches the Gmail account that generated the App Password, then set SMTP_PASS to the current App Password and restart backend.",
+      });
+    }
     res.status(500).json({ message: "Server error" });
   }
 };
