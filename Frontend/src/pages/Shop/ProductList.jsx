@@ -53,7 +53,6 @@ export default function ProductList() {
   }, [products, debouncedSearch, sortOption]);
 
   const productCountLabel = `${displayedProducts.length} item${displayedProducts.length === 1 ? "" : "s"}`;
-
   const getImages = (image) => {
     if (!image) return [];
     if (typeof image === "string") return [image];

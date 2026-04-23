@@ -1,254 +1,217 @@
-import { NavLink, Link, useNavigate, useLocation } from "react-router-dom"
-import { useEffect, useState } from "react"
-import { useSelector, useDispatch } from "react-redux"
-import { logout } from "../store/slices/authSlice"
-import LogoutButton from "./LogoutButton"
-import { ShoppingCart } from "lucide-react"
-
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { HeartHandshake, Menu, ShoppingBag, X } from "lucide-react";
+import { logout } from "../store/slices/authSlice";
+import LogoutButton from "./LogoutButton";
 
 const Navbar = () => {
-  const dispatch = useDispatch()
-  const { user } = useSelector(state => state.auth)
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useSelector((state) => state.auth);
 
-  const [role, setRole] = useState(localStorage.getItem("role"))
-  const [openMenu, setOpenMenu] = useState(false)
-
-  const navigate = useNavigate()
-  const location = useLocation()
+  const [role, setRole] = useState(localStorage.getItem("role"));
+  const [openMenu, setOpenMenu] = useState(false);
 
   useEffect(() => {
-    setRole(user?.role || localStorage.getItem("role"))
-  }, [user])
+    setRole(user?.role || localStorage.getItem("role"));
+  }, [user]);
 
-  const hideOnAuthPages = ["/login", "/admin/login", "/register", "/signup", "/forgot-password", "/reset-password", "/verify-otp"]
-  if (hideOnAuthPages.some((path) => location.pathname === path || location.pathname.startsWith(path + "/"))) return null
+  useEffect(() => {
+    setOpenMenu(false);
+  }, [location.pathname]);
 
-  const handleLogout = () => {
-    dispatch(logout())
-    navigate("/login")
+  const hideOnAuthPages = [
+    "/login",
+    "/admin/login",
+    "/register",
+    "/signup",
+    "/forgot-password",
+    "/reset-password",
+    "/verify-otp",
+  ];
+
+  if (
+    hideOnAuthPages.some(
+      (path) => location.pathname === path || location.pathname.startsWith(`${path}/`)
+    )
+  ) {
+    return null;
   }
 
-  const isHome = location.pathname === "/" || location.pathname === "/home"
-  const linkBase =
-    `relative pb-1 transition-all duration-300 after:absolute after:left-0 after:bottom-0 after:h-[2px] after:w-0 hover:after:w-full after:transition-all after:duration-300 ${isHome ? "hover:text-green-400 after:bg-green-400" : "hover:text-green-600 after:bg-green-600"}`
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/login");
+  };
+
+  const isLanding = location.pathname === "/" || location.pathname === "/home";
+  const isCatalog = location.pathname.startsWith("/products");
+  const navTone = isLanding
+    ? "bg-white/72 text-slate-950 border-white/70"
+    : "bg-white/80 text-slate-800 border-white/70";
+
+  const baseLinks =
+    role === "admin"
+      ? [
+          { to: "/admin/dashboard", label: "Dashboard" },
+          { to: "/admin/add-product", label: "Add Product" },
+          { to: "/admin/orders", label: "Orders" },
+        ]
+      : [
+          { to: "/home", label: "Home" },
+          { to: "/products", label: "Shop" },
+          { to: "/orders", label: "Orders" },
+          { to: "/profile", label: "Profile" },
+        ];
+
+  const activeNavClass = "bg-slate-950 !text-white shadow-md";
+  const inactiveDesktopClass = "text-slate-950 hover:bg-slate-100";
+  const inactiveMobileClass = "text-slate-700 hover:bg-slate-100";
 
   return (
-    <nav
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300
-        ${location.pathname === "/" || location.pathname === "/home"
-          ? "bg-transparent backdrop-blur-sm text-white" 
-          : location.pathname === "/products" 
-            ? "bg-transparent backdrop-blur-sm text-gray-800" 
-            : "bg-white text-gray-800 shadow-md"}
-      `}
-    >
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    <nav className="fixed inset-x-0 top-0 z-50 px-3 pt-3 sm:px-5">
+      <div
+        className={`mx-auto flex w-full max-w-7xl items-center justify-between rounded-[28px] border px-4 py-3 shadow-xl backdrop-blur-xl transition-all duration-300 sm:px-6 ${navTone}`}
+      >
         <Link
           to={role === "admin" ? "/admin/dashboard" : "/home"}
-          className="text-2xl font-bold tracking-tight flex items-center hover:opacity-90 transition"
+          className="flex items-center gap-3"
         >
-          <span className="text-gray-600">Your</span><span className="text-green-600">Store</span><span className="text-green-600 text-3xl leading-8">.</span>
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 via-orange-300 to-teal-500 text-slate-950 shadow-lg">
+            <HeartHandshake size={20} strokeWidth={2.1} />
+          </div>
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-slate-600">
+              Curated Everyday
+            </p>
+            <h1 className="font-[var(--font-heading)] text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">
+              YourShopingStore
+            </h1>
+          </div>
         </Link>
 
-          <button
-            className={`md:hidden text-3xl ${isHome ? "text-white" : "text-gray-700"}`}
-            onClick={() => setOpenMenu(!openMenu)}
-          >
-            ☰
-          </button>
-
-
-        {/* Desktop Menu */}
-        <div className="hidden md:flex items-center gap-8 text-[18px] font-medium text-gray-600">
-          <NavLink
-            to="/home"
-            className={({ isActive }) =>
-              `${linkBase} ${isActive ? (isHome ? "text-green-400" : "text-green-600") + " after:w-full" : ""}`
-            }
-          >
-            Home
-          </NavLink>
-          {role === "user" && (
-            <>
-              <NavLink
-                to="/products"
-                className={({ isActive }) =>
-                  `${linkBase} ${isActive ? "text-green-600 after:w-full" : ""}`
-                }
-              >
-                Products
-              </NavLink>
-              <NavLink
-                to="/orders"
-                className={({ isActive }) =>
-                  `${linkBase} ${isActive ? "text-green-600 after:w-full" : ""}`
-                }
-              >
-                My Orders
-              </NavLink>
-              <NavLink
-                to="/profile"
-                className={({ isActive }) =>
-                  `${linkBase} ${isActive ? "text-green-600 after:w-full" : ""}`
-                }
-              >
-                Profile
-              </NavLink>
-            </>
-          )}
-
-          {role === "admin" && (
-            <>
-              <NavLink
-                to="/admin/dashboard"
-                end
-                className={({ isActive }) =>
-                  `${linkBase} ${isActive ? "text-green-600 after:w-full" : ""}`
-                }
-              >
-                Dashboard
-              </NavLink>
-              <NavLink
-                to="/admin/add-product"
-                className={({ isActive }) =>
-                  `${linkBase} ${isActive ? "text-green-600 after:w-full" : ""}`
-                }
-              >
-                Add Product
-              </NavLink>
-              <NavLink
-                to="/admin/orders"
-                className={({ isActive }) =>
-                  `${linkBase} ${isActive ? "text-green-600 after:w-full" : ""}`
-                }
-              >
-                Manage Orders
-              </NavLink>
-            </>
-          )}
+        <div className="hidden items-center gap-2 lg:flex">
+          {baseLinks.map((link) => (
+            <NavLink
+              key={link.to}
+              to={link.to}
+              end={link.to === "/admin/dashboard" || link.to === "/home"}
+              className={({ isActive }) =>
+                `rounded-full px-4 py-2 text-sm font-semibold transition ${
+                  isActive ? activeNavClass : inactiveDesktopClass
+                }`
+              }
+            >
+              {link.label}
+            </NavLink>
+          ))}
         </div>
 
-
-{openMenu && (
-  <div
-    className="md:hidden absolute right-6 top-20 w-48 bg-white text-gray-800 p-4 rounded-2xl shadow-xl 
-               flex flex-col gap-3 z-50 dropdown-animate backdrop-blur-md border border-gray-200"
-  >
-    <NavLink
-      to="/home"
-      onClick={() => setOpenMenu(false)}
-      className="font-semibold hover:text-green-600 transition"
-    >
-      Home
-    </NavLink>
-    {role === "user" && (
-      <>
-        <NavLink
-          to="/products"
-          onClick={() => setOpenMenu(false)}
-          className="font-semibold hover:text-green-600 transition"
-        >
-          Products
-        </NavLink>
-        <NavLink
-          to="/cart"
-          onClick={() => setOpenMenu(false)}
-          className="font-semibold hover:text-green-600 transition"
-        >
-          Cart
-        </NavLink>
-
-        <NavLink
-          to="/orders"
-          onClick={() => setOpenMenu(false)}
-          className="font-semibold hover:text-green-600 transition"
-        >
-          My Orders
-        </NavLink>
-
-        <NavLink
-          to="/profile"
-          onClick={() => setOpenMenu(false)}
-          className="font-semibold hover:text-green-600 transition"
-        >
-          Profile
-        </NavLink>
-      </>
-    )}
-
-    {role === "admin" && (
-      <>
-        <NavLink
-          to="/admin/dashboard"
-          onClick={() => setOpenMenu(false)}
-          className="font-semibold text-gray-700 hover:text-green-600 transition"
-        >
-          Dashboard
-        </NavLink>
-
-        <div className="border-b" />
-
-        <NavLink
-          to="/admin/add-product"
-          onClick={() => setOpenMenu(false)}
-          className="hover:text-green-600 transition"
-        >
-          Add Product
-        </NavLink>
-
-        <NavLink
-          to="/admin/orders"
-          onClick={() => setOpenMenu(false)}
-          className="hover:text-green-600 transition"
-        >
-          Manage Orders
-        </NavLink>
-      </>
-    )}
-
-    {user && (
-      <div className="mt-1">
-        <LogoutButton onClick={handleLogout} />
-      </div>
-    )}
-  </div>
-)}
-
-
-
-        <div className="flex items-center gap-3">
-          {/* Cart icon - hidden on admin login page and when logged in as admin */}
+        <div className="hidden items-center gap-3 lg:flex">
           {role !== "admin" && (
             <Link
               to="/cart"
-              className={`p-2 rounded-lg transition-colors ${isHome ? "hover:bg-white/20 text-white" : "hover:bg-gray-100 text-gray-600"}`}
-              title="Cart"
+              className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition ${
+                isLanding || isCatalog
+                  ? "bg-slate-100 text-slate-900 hover:bg-slate-200"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              }`}
             >
-              <ShoppingCart size={24} />
+              <ShoppingBag size={18} />
+              Cart
             </Link>
           )}
+
           {user ? (
             <LogoutButton onClick={handleLogout} />
           ) : (
             <>
               <button
                 onClick={() => navigate("/login")}
-                className={`px-4 py-2 font-medium rounded-lg transition ${isHome ? "text-white hover:bg-white/20" : "text-green-600 hover:bg-green-50"}`}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                  isLanding
+                    ? "text-slate-950 hover:bg-slate-100"
+                    : "text-teal-700 hover:bg-teal-50"
+                }`}
               >
                 Log in
               </button>
               <button
                 onClick={() => navigate("/register")}
-                className="px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition"
+                className="rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-slate-800"
               >
-                Sign up
+                Create account
               </button>
             </>
           )}
         </div>
-      </div>
-    </nav>
-  )
-}
 
-export default Navbar
+        <button
+          onClick={() => setOpenMenu((value) => !value)}
+          className={`flex h-11 w-11 items-center justify-center rounded-2xl border lg:hidden ${
+            isLanding
+              ? "border-slate-200 bg-white text-slate-950"
+              : "border-slate-200 bg-white text-slate-800"
+          }`}
+          aria-label="Toggle navigation"
+        >
+          {openMenu ? <X size={20} /> : <Menu size={20} />}
+        </button>
+      </div>
+
+      {openMenu && (
+        <div className="dropdown-animate mx-auto mt-3 max-w-7xl rounded-[28px] border border-white/70 bg-white/92 p-4 shadow-2xl backdrop-blur-xl lg:hidden">
+          <div className="flex flex-col gap-2">
+            {baseLinks.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                end={link.to === "/admin/dashboard" || link.to === "/home"}
+                className={({ isActive }) =>
+                  `rounded-2xl px-4 py-3 text-sm font-semibold transition ${
+                    isActive ? activeNavClass : inactiveMobileClass
+                  }`
+                }
+              >
+                {link.label}
+              </NavLink>
+            ))}
+
+            {role !== "admin" && (
+              <NavLink
+                to="/cart"
+                className="rounded-2xl px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+              >
+                Cart
+              </NavLink>
+            )}
+          </div>
+
+          <div className="mt-4 border-t border-slate-200 pt-4">
+            {user ? (
+              <LogoutButton onClick={handleLogout} />
+            ) : (
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => navigate("/login")}
+                  className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                >
+                  Log in
+                </button>
+                <button
+                  onClick={() => navigate("/register")}
+                  className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                >
+                  Create account
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+};
+
+export default Navbar;

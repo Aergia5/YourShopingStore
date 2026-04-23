@@ -1,223 +1,211 @@
-import React, { useEffect, useState } from "react"
-import { useParams, useNavigate } from "react-router-dom"
-import API, { BASE_URL } from "../../api/api"
-import { useSelector, useDispatch } from "react-redux"
-import { Star, ShoppingCart, Zap } from "lucide-react"
-import { formatUrl, PLACEHOLDER_IMAGE } from "../../utils/formatUrl"
-import { addToCart } from "../../store/slices/cartSlice"
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { addToCart } from "../../store/slices/cartSlice";
+import API from "../../api/api";
+import { formatUrl, PLACEHOLDER_IMAGE } from "../../utils/formatUrl";
+import { ArrowRight, ShieldCheck, ShoppingCart, Star, Truck, Zap } from "lucide-react";
+
+const perks = [
+  { icon: ShieldCheck, title: "Secure ordering", text: "Cleaner actions and a clearer checkout path reduce hesitation." },
+  { icon: Truck, title: "Quick delivery", text: "Fast dispatch messaging stays visible where customers need it." },
+  { icon: Star, title: "Better clarity", text: "Pricing and product imagery are easier to compare at a glance." },
+];
 
 export default function ProductPage() {
-  const { id } = useParams()
-  const navigate = useNavigate()
-  const dispatch = useDispatch()
-  const [product, setProduct] = useState(null)
-  const [selectedImage, setSelectedImage] = useState("")
-  const [discount, setDiscount] = useState(0)
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const token = useSelector((state) => state.auth.token);
 
-  const token = useSelector(state => state.auth.token)
-
-  const normalizeImages = (image) => {
-    if (!image) return []
-
-    if (Array.isArray(image)) {
-      return image
-        .map((img) => {
-          if (typeof img === "string") return img
-          if (typeof img === "object" && img?.url) return img.url
-          return null
-        })
-        .filter(Boolean)
-    }
-
-    if (typeof image === "string") return [image]
-
-    return []
-  }
+  const [product, setProduct] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(PLACEHOLDER_IMAGE);
+  const [discount, setDiscount] = useState(12);
 
   useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        const res = await API.get(`/api/products/${id}`)
-        const p = res.data
-        setProduct(p)
+    API.get(`/api/products/${id}`)
+      .then((res) => {
+        const currentProduct = res.data;
+        setProduct(currentProduct);
+        const images = normalizeImages(currentProduct.image);
+        setSelectedImage(images[0] ? formatUrl(images[0]) || PLACEHOLDER_IMAGE : PLACEHOLDER_IMAGE);
+        setDiscount(currentProduct.discount || 12);
+      })
+      .catch((err) => console.error("Failed to load product:", err));
+  }, [id]);
 
-        const images = normalizeImages(p.image)
-        const first = images[0] ? formatUrl(images[0]) : PLACEHOLDER_IMAGE
-
-        setSelectedImage(first)
-        setDiscount(p.discount || 15)
-      } catch (err) {
-        console.error("Failed to load product:", err)
-      }
-    }
-    fetchProduct()
-  }, [id])
-
+  const normalizedImages = useMemo(() => normalizeImages(product?.image), [product]);
 
   if (!product) {
-    return (
-      <div className="min-h-screen flex justify-center items-center text-gray-500 text-lg">
-        Loading product details...
-      </div>
-    )
+    return <div className="flex min-h-screen items-center justify-center text-slate-500">Loading product details...</div>;
   }
 
-  const discountedPrice = (
-    product.price -
-    (product.price * discount) / 100
-  ).toFixed(2)
+  const originalPrice = Number(product.price || 0);
+  const discountedPrice = (originalPrice - (originalPrice * discount) / 100).toFixed(2);
 
-  const imageList = normalizeImages(product.image)
-
-    const handleAddToCart = async (redirectTo = null) => {
-      if (!token) {
-        alert("Please login to add items to cart")
-        navigate("/login")
-        return
-      }
-      
-      if (!product || !product.id) {
-        alert("Product information is missing")
-        return
-      }
-      
-      try {
-        const result = await dispatch(addToCart({ productId: product.id, quantity: 1 }))
-        
-        if (addToCart.fulfilled.match(result)) {
-          // Add to Cart: stay on product page, show success
-          if (!redirectTo) {
-            alert("Added to cart! Use the cart icon to view your cart.")
-            return
-          }
-          // Buy Now: add to cart then go to checkout
-          navigate(redirectTo)
-        } else if (addToCart.rejected.match(result)) {
-          const errorMsg = typeof result.payload === 'string' 
-            ? result.payload 
-            : result.payload?.message || "Failed to add product to cart"
-          alert(errorMsg)
-        }
-      } catch (error) {
-        console.error("Error adding to cart:", error)
-        alert("Failed to add product to cart. Please try again.")
-      }
+  const handleAddToCart = async (redirectTo = null) => {
+    if (!token) {
+      alert("Please login to add items to cart");
+      navigate("/login");
+      return;
     }
-    
 
+    try {
+      const result = await dispatch(addToCart({ productId: product.id, quantity: 1 }));
+      if (addToCart.fulfilled.match(result)) {
+        if (redirectTo) {
+          navigate(redirectTo);
+          return;
+        }
+        alert("Added to cart successfully.");
+        return;
+      }
+
+      if (addToCart.rejected.match(result)) {
+        const errorMessage =
+          typeof result.payload === "string"
+            ? result.payload
+            : result.payload?.message || "Failed to add product to cart";
+        alert(errorMessage);
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      alert("Failed to add product to cart. Please try again.");
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-18 px-6">
-      <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-lg overflow-hidden">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 p-4 sm:p-6 md:p-10">
-          <div>
-            <div className="bg-gray-100 rounded-2xl p-6 flex items-center justify-center mb-4">
-              <img
-                src={selectedImage || PLACEHOLDER_IMAGE}
-                alt={product.name}
-                onError={(e) => { e.target.onerror = null; e.target.src = PLACEHOLDER_IMAGE; }}
-                className="w-full h-auto max-h-[300px] sm:max-h-[350px] md:max-h-[420px] object-contain"
-              />
+    <div className="px-4 pb-12 pt-28 sm:px-6 sm:pt-32">
+      <div className="section-shell grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+        <section className="glass-panel overflow-hidden rounded-[36px] border border-white/70 p-5 sm:p-7">
+          <div className="rounded-[30px] bg-gradient-to-br from-white via-amber-50 to-teal-50 p-6">
+            <img
+              src={selectedImage}
+              alt={product.name}
+              onError={(event) => {
+                event.currentTarget.onerror = null;
+                event.currentTarget.src = PLACEHOLDER_IMAGE;
+              }}
+              className="mx-auto h-[280px] w-full object-contain sm:h-[420px]"
+            />
+          </div>
+
+          <div className="mt-5 grid grid-cols-4 gap-3 sm:grid-cols-5">
+            {normalizedImages.length > 0 ? (
+              normalizedImages.map((image, index) => {
+                const imageUrl = formatUrl(image) || PLACEHOLDER_IMAGE;
+                const isActive = selectedImage === imageUrl;
+
+                return (
+                  <button
+                    key={`${imageUrl}-${index}`}
+                    onClick={() => setSelectedImage(imageUrl)}
+                    className={`overflow-hidden rounded-2xl border p-2 transition ${
+                      isActive ? "border-teal-600 bg-teal-50" : "border-slate-200 bg-white hover:border-slate-300"
+                    }`}
+                  >
+                    <img
+                      src={imageUrl}
+                      alt={`${product.name} ${index + 1}`}
+                      className="h-18 w-full object-contain"
+                      onError={(event) => {
+                        event.currentTarget.onerror = null;
+                        event.currentTarget.src = PLACEHOLDER_IMAGE;
+                      }}
+                    />
+                  </button>
+                );
+              })
+            ) : (
+              <div className="rounded-2xl border border-slate-200 bg-white p-2">
+                <img src={PLACEHOLDER_IMAGE} alt="Placeholder" className="h-18 w-full object-contain" />
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="space-y-6">
+          <div className="glass-panel rounded-[36px] border border-white/70 p-6 sm:p-8">
+            <p className="text-xs font-bold uppercase tracking-[0.28em] text-teal-700">Product detail</p>
+            <h1 className="mt-3 text-4xl text-balance text-slate-900 sm:text-5xl">{product.name}</h1>
+            <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-500">
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 font-semibold text-amber-700">
+                <Star size={16} className="fill-amber-400 text-amber-400" />
+                4.8 rating
+              </span>
+              <span>{product.reviews?.length || 25} customer reviews</span>
             </div>
 
-            <div className="flex justify-center gap-3 flex-wrap">
-              {imageList.length > 0 ? (
-                imageList.map((img, i) => {
-                  const fullUrl = formatUrl(img)
-                  return (
-                    <img
-                      key={i}
-                      src={fullUrl}
-                      alt={`thumb-${i}`}
-                      onError={(e) => { e.target.onerror = null; e.target.src = PLACEHOLDER_IMAGE; }}
-                      onClick={() => setSelectedImage(fullUrl)}
-                      className={`w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg cursor-pointer border-2 ${
-                        selectedImage === fullUrl
-                          ? "border-slate-800"
-                          : "border-transparent"
-                      }`}
-                    />
-                  )
-                })
-              ) : (
-                <img
-                  src={PLACEHOLDER_IMAGE}
-                  alt="placeholder"
-                  className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg opacity-60"
-                />
-              )}
+            <div className="mt-6 flex flex-wrap items-end gap-4">
+              <p className="text-4xl font-extrabold text-teal-700">NPR {discountedPrice}</p>
+              <p className="pb-1 text-lg text-slate-400 line-through">NPR {originalPrice.toFixed(2)}</p>
+              <span className="rounded-full bg-slate-950 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.24em] text-white">
+                Save {discount}%
+              </span>
+            </div>
+
+            <p className="mt-6 text-sm leading-8 text-slate-600 sm:text-base">
+              {product.description ||
+                "This product is now presented with a stronger information hierarchy so shoppers can scan details, pricing, and actions with less effort."}
+            </p>
+
+            <div className="mt-8 grid gap-3 sm:grid-cols-3">
+              {perks.map(({ icon: Icon, title, text }) => (
+                <div key={title} className="rounded-[24px] bg-white/80 p-4">
+                  <Icon className="text-teal-700" size={18} />
+                  <h2 className="mt-3 text-xl text-slate-900">{title}</h2>
+                  <p className="mt-2 text-sm leading-7 text-slate-500">{text}</p>
+                </div>
+              ))}
             </div>
           </div>
 
-          <div className="flex flex-col justify-between">
-            <div>
-              <h1 className="text-3xl font-semibold text-gray-800 mb-2">
-                {product.name}
-              </h1>
-
-              <div className="flex items-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    size={16}
-                    className={`${
-                      i < 4 ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
-                    }`}
-                  />
-                ))}
-                <span className="ml-2 text-sm text-gray-500">
-                  ({product.reviews?.length || 25} reviews)
-                </span>
-              </div>
-
-              <div className="flex items-baseline gap-4 mb-6">
-                <h2 className="text-xl font-bold text-gray-600">
-                  NPR {discountedPrice}
-                </h2>
-                <span className="text-gray-600 line-through text-md">
-                  NPR {product.price.toFixed(2)}
-                </span>
-                <span className="text-green-600 font-medium bg-green-100 px-3 py-1 rounded-full text-sm">
-                  Save {discount}%
-                </span>
-              </div>
-
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                {product.description ||
-                  "This product is made from premium quality materials ensuring durability and comfort. Perfect choice for everyday use."}
-              </p>
-
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                  Highlights
-                </h3>
-                <ul className="list-disc pl-6 text-gray-600 space-y-1">
-                  <li>Durable and premium build quality</li>
-                  <li>Ergonomic design for comfort</li>
-                  <li>Lightweight and easy to use</li>
-                  <li>Fast delivery within 3-5 business days</li>
-                </ul>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-4 mt-6">
+          <div className="glass-panel rounded-[36px] border border-white/70 p-6 sm:p-8">
+            <h2 className="text-3xl text-slate-900">Ready to continue?</h2>
+            <p className="mt-3 text-sm leading-7 text-slate-500">
+              The redesigned actions keep the next step obvious whether the customer wants to save the item for later or move straight to checkout.
+            </p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <button
                 onClick={() => handleAddToCart()}
-                className="flex items-center justify-center gap-2 bg-gray-600 text-white px-6 py-3 rounded-lg text-lg font-medium hover:bg-slate-700 transition cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-950 px-6 py-3.5 text-sm font-bold text-white transition hover:bg-slate-800"
               >
-                <ShoppingCart size={18} /> Add to Cart
+                <ShoppingCart size={18} />
+                Add to cart
               </button>
-
               <button
                 onClick={() => handleAddToCart("/cart")}
-                className="flex items-center justify-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg text-lg font-medium hover:bg-green-700 transition cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-teal-700 px-6 py-3.5 text-sm font-bold text-white transition hover:bg-teal-800"
               >
-                <Zap size={18} /> Buy Now
+                <Zap size={18} />
+                Buy now
+              </button>
+              <button
+                onClick={() => navigate("/products")}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-6 py-3.5 text-sm font-bold text-slate-700 transition hover:border-teal-300 hover:text-teal-700"
+              >
+                Continue shopping
+                <ArrowRight size={18} />
               </button>
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
-  )
+  );
+}
+
+function normalizeImages(image) {
+  if (!image) return [];
+  if (Array.isArray(image)) {
+    return image
+      .map((entry) => {
+        if (typeof entry === "string") return entry;
+        if (typeof entry === "object" && entry?.url) return entry.url;
+        return null;
+      })
+      .filter(Boolean);
+  }
+  if (typeof image === "string") return [image];
+  return [];
 }

@@ -5,20 +5,17 @@ import User from "../src/models/User.js";
 
 dotenv.config();
 
-const KEEP_EMAILS = new Set(["demo@example.com", "admin@example.com"]);
+const KEEP_EMAILS = ["demo@example.com", "admin@example.com"];
 
 async function main() {
   await connectDB();
 
   const result = await User.deleteMany({
-    $and: [
-      { email: { $nin: Array.from(KEEP_EMAILS) } },
-      { role: { $ne: "admin" } },
-    ],
+    email: { $nin: KEEP_EMAILS },
   });
 
   console.log(
-    `Deleted ${result.deletedCount ?? 0} user account(s). Kept: demo@example.com, admin@example.com, and all role=admin users.`
+    `Deleted ${result.deletedCount ?? 0} user account(s). Kept only: demo@example.com and admin@example.com.`
   );
 }
 
