@@ -10,7 +10,7 @@ import CategorySidebar from "../../components/CategorySidebar";
 import { bubbleSortProducts, manualSearchProducts } from "../../utils/manualSearchSort";
 
 const SORT_OPTIONS = [
-  { value: "latest", label: "Latest first" },
+  { value: "latest", label: "Latest first"},
   { value: "name-asc", label: "Name A-Z" },
   { value: "name-desc", label: "Name Z-A" },
   { value: "price-asc", label: "Price low-high" },
